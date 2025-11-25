@@ -79,9 +79,6 @@ public class PackMaster extends Perk {
      * Spawns a tamed wolf for the player and registers it to this perk instance.
      */
     private void summonWolf(Player owner) {
-        // Spawn the wolf at the owner's location
-        Location location = owner.getLocation();
-        Wolf wolf = (Wolf) location.getWorld().spawnEntity(location, EntityType.WOLF);
 
         if (this.summonedWolves.size() >= 10) {
             owner.playSound(owner, Sound.ENTITY_WOLF_GROWL, 5, 0);
@@ -102,6 +99,10 @@ public class PackMaster extends Perk {
             owner.sendMessage("§cYou have reached the maximum amount of wolves. Lowest HP wolf has been healed!");
             return;
         }
+
+        // Spawn the wolf at the owner's location
+        Location location = owner.getLocation();
+        Wolf wolf = (Wolf) location.getWorld().spawnEntity(location, EntityType.WOLF);
 
         // Tame the wolf and set the owner
         wolf.setTamed(true);
