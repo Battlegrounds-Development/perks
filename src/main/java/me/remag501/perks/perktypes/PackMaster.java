@@ -2,11 +2,11 @@ package me.remag501.perks.perktypes;
 
 import me.remag501.perks.core.Perk;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Wolf;
+import org.bukkit.DyeColor;
+import org.bukkit.Sound;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.Location;
@@ -58,9 +58,21 @@ public class PackMaster extends Perk {
 
         // 2. Summon the wolf
         perk.summonWolf(killer);
+    }
 
-        // Optional: Add visual feedback (sound/message)
-        killer.sendMessage("§6A new wolf joins your pack!");
+    @EventHandler
+    public void onWolfDeath(EntityDeathEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Wolf wolf))
+            return;
+
+        AnimalTamer tamer = wolf.getOwner();
+        if (tamer != null) {
+            PackMaster perk = (PackMaster) getPerk(tamer.getUniqueId());
+            if (perk != null) {
+                perk.summonedWolves.remove(entity.getUniqueId());
+            }
+        }
     }
 
     /**
@@ -71,10 +83,34 @@ public class PackMaster extends Perk {
         Location location = owner.getLocation();
         Wolf wolf = (Wolf) location.getWorld().spawnEntity(location, EntityType.WOLF);
 
+        if (this.summonedWolves.size() >= 10) {
+            owner.playSound(owner, Sound.ENTITY_WOLF_GROWL, 5, 0);
+            Wolf minWolf = null;
+            double minHP = 100;
+
+            // Find lowest hp wolf
+            for (UUID wolfUUID: summonedWolves) {
+                Wolf wolfEntity = (Wolf) Bukkit.getEntity(wolfUUID);
+                if (wolfEntity.getHealth() < minHP) {
+                    minWolf = wolfEntity;
+                    minHP = minWolf.getHealth();
+                }
+            }
+
+            // Heal lowest hp wolf
+            minWolf.setHealth(20);
+            owner.sendMessage("§cYou have reached the maximum amount of wolves. Lowest HP wolf has been healed!");
+            return;
+        }
+
         // Tame the wolf and set the owner
         wolf.setTamed(true);
         wolf.setOwner(owner);
-        wolf.setCollarColor(org.bukkit.DyeColor.BROWN); // Optional: differentiate perk wolves
+//        wolf.setCollarColor(DyeColor.BROWN); // Optional: differentiate perk wolves
+
+        // Add visual feedback (sound/message)
+        owner.sendMessage("§6A new wolf joins your pack!");
+        owner.playSound(owner, Sound.ENTITY_WOLF_WHINE, 1, 0);
 
         // Add the wolf's UUID to the instance state for tracking/cleanup
         this.summonedWolves.add(wolf.getUniqueId());
