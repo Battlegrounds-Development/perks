@@ -24,6 +24,9 @@ public class PerksCompleter implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
+        if (!sender.hasPermission("perks.admin"))
+            return completions;
+
         if (args.length == 1) {
             // Base subcommands
             completions.addAll(Arrays.asList("reload", "add", "addpoints", "addcard", "remove", "hiddenui"));

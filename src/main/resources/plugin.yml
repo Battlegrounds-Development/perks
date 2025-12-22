@@ -6,5 +6,13 @@ api-version: 1.19
 commands:
   perks:
     description: Gives a player perk(s).
-    usage: /perks
-    permission: perks.give
+    usage: /perks <subcommand>
+    # No permission here allows the code to handle the logic
+
+permissions:
+  perks.admin:
+    description: Allows giving perks.
+    default: op
+  perks.user:
+    description: Allows viewing and equipping perks.
+    default: true

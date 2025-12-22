@@ -26,10 +26,13 @@ public class PerksCommand implements CommandExecutor {
 //            sender.sendMessage("§6§lPERKS §8» §7This command can only be executed by players.");
 //            return true;
 //        }
-        if (args.length == 0) {
+        if (args.length == 0 && sender.hasPermission("perks.user")) {
             openPerkUI(sender, false);
             return true;
         }
+
+        if (!sender.hasPermission("perks.admin")) // All admin command after this
+            return true;
 
         switch (args[0].toLowerCase()) {
             case "reload":
