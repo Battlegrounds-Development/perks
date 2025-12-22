@@ -78,16 +78,16 @@ public class GambleUI implements Listener {
                     return;
                 }
                 switch (clickedItem.getItemMeta().getDisplayName()) {
-                    case "COMMON":
+                    case "§f§lCOMMON":
                         rollPerk(player, 0, 2);
                         break;
-                    case "UNCOMMON":
+                    case "§a§lUNCOMMON":
                         rollPerk(player, 1, 4);
                         break;
-                    case "RARE":
+                    case "§1§lRARE":
                         rollPerk(player, 2, 7);
                         break;
-                    case "LEGENDARY":
+                    case "§6§lLEGENDARY":
                         rollPerk(player, 3, 10);
                         break;
                     default:
@@ -173,7 +173,7 @@ public class GambleUI implements Listener {
         triggerTotemAnimation(player, perkType);
         // Add perk to player
         playerPerks.addOwnedPerks(perkType);
-        player.sendMessage("You obtained the perk: " + perkType.getItem().getItemMeta().getDisplayName());
+        player.sendMessage("§6§lPERKS §8» §7You obtained the perk: " + perkType.getItem().getItemMeta().getDisplayName());
         return true;
     }
 }
