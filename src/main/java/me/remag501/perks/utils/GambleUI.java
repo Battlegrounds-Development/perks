@@ -34,10 +34,10 @@ public class GambleUI implements Listener {
 //        }
         PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
         int perkPoints = playerPerks.getPerkPoints();
-        ItemStack commonButton = Items.createItem(Material.WHITE_STAINED_GLASS_PANE, "COMMON", "common", true, "Costs 2 / " + perkPoints + " perk points");
-        ItemStack uncommonButton = Items.createItem(Material.GREEN_STAINED_GLASS_PANE, "UNCOMMON", "uncommon", true, "Costs 4 / " + perkPoints + " perk points");
-        ItemStack rareButton = Items.createItem(Material.BLUE_STAINED_GLASS_PANE, "RARE", "rare", true, "Costs 7 / " + perkPoints + " perk points");
-        ItemStack legendaryButton = Items.createItem(Material.ORANGE_STAINED_GLASS_PANE, "LEGENDARY", "legendary", true, "Costs 10 / " + perkPoints + " perk points");
+        ItemStack commonButton = Items.createItem(Material.WHITE_STAINED_GLASS_PANE, "§f§lCOMMON", "common", true, "§7Costs 2 out of " + perkPoints + " perk points.");
+        ItemStack uncommonButton = Items.createItem(Material.GREEN_STAINED_GLASS_PANE, "§a§lUNCOMMON", "uncommon", true, "§7Costs 4 out of " + perkPoints + " perk points.");
+        ItemStack rareButton = Items.createItem(Material.BLUE_STAINED_GLASS_PANE, "§1§lRARE", "rare", true, "§7Costs 7 out of " + perkPoints + " perk points.");
+        ItemStack legendaryButton = Items.createItem(Material.ORANGE_STAINED_GLASS_PANE, "§6§lLEGENDARY", "legendary", true, "§7Costs 10 out of " + perkPoints + " perk points.");
         // Set Locations
         rollInventory.setItem(10, commonButton);
         rollInventory.setItem(12, uncommonButton);

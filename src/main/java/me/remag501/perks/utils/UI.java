@@ -47,7 +47,7 @@ public class UI implements Listener {
         ItemStack head = Items.createPerkSkull(perks.getPlayerUUID(), player.getDisplayName(), player.getDisplayName());
         perkInventory.setItem(0, head);
         // Place rolling perks in top right
-        ItemStack perkRollButton = Items.createItem(Material.SUNFLOWER, "Obtain Perks", "casino", false, "Perk Points: " + perks.getPerkPoints());
+        ItemStack perkRollButton = Items.createItem(Material.SUNFLOWER, "§6§lOBTAIN PERKS", "casino", false, "§7Perk Points: " + perks.getPerkPoints());
         perkInventory.setItem(8, perkRollButton);
     }
 
@@ -106,13 +106,13 @@ public class UI implements Listener {
 //        int totalPages = Perk.perkAmount / 36;
 
         if (page == totalPages - 1) // Last page
-            perkInventory.setItem(53, Items.createItem(Material.STONE, "Last Page", null, false, "§7" + (page + 1) + "/" + totalPages)); // No button needed
+            perkInventory.setItem(53, Items.createItem(Material.PAPER, "§f§lLAST PAGE", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // No button needed
         else // Not last page
-            perkInventory.setItem(53, Items.createItem(Material.GREEN_CONCRETE, "Next", null, false, "§7" + (page + 1) + "/" + totalPages)); // Add next button
+            perkInventory.setItem(53, Items.createItem(Material.GREEN_DYE, "§a§lNEXT", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // Add next button
         if (page == 0) // First page
-            perkInventory.setItem(45, Items.createItem(Material.STONE, "First Page", null, false, "§7" + (page + 1) + "/" + totalPages)); // No button needed
+            perkInventory.setItem(45, Items.createItem(Material.PAPER, "§f§lFIRST PAGE", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // No button needed
         else // Not first page
-            perkInventory.setItem(45, Items.createItem(Material.RED_CONCRETE, "Back", null, false, "§7" + (page + 1) + "/" + totalPages)); // Add back button
+            perkInventory.setItem(45, Items.createItem(Material.RED_DYE, "§c§lBACK", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // Add back button
 
     }
 
@@ -132,7 +132,8 @@ public class UI implements Listener {
             ItemStack nextPageItem = event.getInventory().getItem(53);
             List<String> nextPageLore = nextPageItem.getItemMeta().getLore();
             String pageDetails = nextPageLore.get(0);
-            int pageNum = Integer.parseInt(pageDetails.split("/")[0].replace("§7", "")) - 1;
+            int pageNum = Integer.parseInt(pageDetails.split("/")[0].replace("§7§o", "")) - 1;
+//            Bukkit.getLogger().info(pageNum + "");
 
             // Check if the player is clicks bedrock
             if (event.getCurrentItem().getType() == Material.BEDROCK) {
@@ -140,12 +141,12 @@ public class UI implements Listener {
                 player.sendMessage("§cYou don't have that perk available");
                 return;
             } // Check if player clicked on perk gamble
-             else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("Obtain Perks")) {
+             else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§6§lOBTAIN PERKS")) {
                 GambleUI rollUI = new GambleUI();
                 rollUI.open(player);
-            } else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("Next")) {
+            } else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§a§lNEXT")) {
                 pageNum++;
-            } else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("Back")) {
+            } else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§c§lBACK")) {
                 pageNum--;
             }
             else {

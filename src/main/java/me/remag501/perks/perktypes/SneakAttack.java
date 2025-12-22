@@ -61,7 +61,8 @@ public class SneakAttack extends Perk {
             event.setDamage(newDamage);
 
             // Visual/Feedback
-            player.sendMessage("§4SNEAK ATTACK! §c" + (int)((DAMAGE_MULTIPLIER - 1.0) * 100) + "% Bonus Damage.");
+//            player.sendMessage("§4SNEAK ATTACK! §c" + (int)((DAMAGE_MULTIPLIER - 1.0) * 100) + "% Bonus Damage.");
+            player.sendMessage("§a§l(!) §aYou landed a back shot!");
             player.getWorld().playSound(victim.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.5f);
         }
     }

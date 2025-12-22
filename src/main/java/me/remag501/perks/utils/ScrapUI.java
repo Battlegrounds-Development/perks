@@ -30,13 +30,13 @@ public class ScrapUI implements Listener {
         ItemStack confirm = new ItemStack(Material.GREEN_WOOL);
         ItemMeta confirmMeta = confirm.getItemMeta();
         assert confirmMeta != null;
-        confirmMeta.setDisplayName("Confirm");
+        confirmMeta.setDisplayName("§a§lCONFIRM");
         confirm.setItemMeta(confirmMeta);
 
         ItemStack cancel = new ItemStack(Material.RED_WOOL);
         ItemMeta cancelMeta = cancel.getItemMeta();
         assert cancelMeta != null;
-        cancelMeta.setDisplayName("Cancel");
+        cancelMeta.setDisplayName("§c§lCANCEL");
         cancel.setItemMeta(cancelMeta);
 
         scrapInventory.setItem(3, cancel);
@@ -63,12 +63,12 @@ public class ScrapUI implements Listener {
 
         switch (clickedItem.getType()) {
             case GREEN_WOOL: // Confirm
-                playerPerks.scrapPerks(perkType, player);
-                player.sendMessage("You have scrapped the perk " + perkType.name());
+                int points = playerPerks.scrapPerks(perkType);
+                player.sendMessage("§6§lPERKS §8» §7You have scrapped the perk " + perkType.getItem().getItemMeta().getDisplayName() + " §7for " + points + " points!");
                 player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f);
                 break;
             case RED_WOOL: // Cancel
-                player.sendMessage("Scrapping cancelled.");
+                player.sendMessage("§6§lPERKS §8» §7Scrapping cancelled.");
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
                 break;
             default:

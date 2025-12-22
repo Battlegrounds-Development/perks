@@ -77,7 +77,7 @@ public class GuerrillaTactics extends Perk {
 
             // Start the initial 3-second charge-up timer
             SNEAK_START_TIME.put(uuid, System.currentTimeMillis());
-            player.sendMessage("§a[Guerrilla Tactics] Channeling stealth...");
+            player.sendMessage("§a§l(!) §aChanneling stealth...");
 
             // IMPORTANT: Start a recurring task to check the channel
             // This task will run every 5 ticks (0.25s) for responsiveness.
@@ -106,7 +106,7 @@ public class GuerrillaTactics extends Perk {
             if (System.currentTimeMillis() - startTime >= INITIAL_SNEAK_MILLIS) {
                 // Channel SUCCESS! Clear the tracking map and start the continuous effect mode.
                 SNEAK_START_TIME.remove(uuid);
-                player.sendMessage("§a[Guerrilla Tactics] Concealment achieved!");
+                player.sendMessage("§a§l(!) §aConcealment achieved!");
 
                 // Re-schedule the task to run less frequently for the active effect
                 this.stealthTask.cancel();
@@ -116,7 +116,7 @@ public class GuerrillaTactics extends Perk {
             }
             // If the player moved or lost concealment during the channel, stop.
             else if (!player.isSneaking() || !isInTacticalPosition(player.getLocation())) {
-                player.sendMessage("§e[Guerrilla Tactics] Channel interrupted.");
+                player.sendMessage("§c§l(!) §cChannel interrupted.");
                 cancelStealthTask();
             }
             return;
@@ -125,7 +125,7 @@ public class GuerrillaTactics extends Perk {
         // 2. Continuous Effect Mode Check (Only runs if startTime is null)
         if (!player.isSneaking() || !isInTacticalPosition(player.getLocation())) {
             // Conditions broken: Player moved, stopped sneaking, or left the bush.
-            player.sendMessage("§e[Guerrilla Tactics] Concealment broken!");
+            player.sendMessage("§c§l(!) §cConcealment broken!");
             cancelStealthTask();
         }
     }

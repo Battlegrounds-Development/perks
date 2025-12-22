@@ -107,7 +107,7 @@ public class Undead extends Perk {
         // 6. Success: Grant the absorption hearts to the perk holder
         perk.grantAbsorption(assistPlayer);
 
-        assistPlayer.sendMessage("§5[Undead] The shadows reward your assist! Gained §d" + ABSORPTION_HEARTS + " Absorption Hearts.");
+        assistPlayer.sendMessage("§a§l(!) §aThe shadows reward your assist! Gained §d" + ABSORPTION_HEARTS + " §aAbsorption Hearts.");
     }
 
     /**

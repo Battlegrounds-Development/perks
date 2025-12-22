@@ -151,8 +151,12 @@ public class Items {
         }
         // Prepend the lores with rarity Str
         ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
+        for (int i = 0; i < loreList.size(); i++) {
+            loreList.set(i, "§8• §f" + loreList.get(i));
+        }
         loreList.add(0, rarityStr);
-        ItemStack item = Items.createItem(Material.PAPER, name, id, cmd,false, loreList.toArray(new String[loreList.size()]));
+        // Make lores same color
+        ItemStack item = Items.createItem(Material.PAPER, "§e§o" + name, id, cmd,false, loreList.toArray(new String[loreList.size()]));
         // Add tag for hidden rarity
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
@@ -428,7 +432,7 @@ public class Items {
         ItemMeta meta = item.getItemMeta();
         // Build a star string
         List<String> loreList = meta.getLore();
-        StringBuilder starStr = new StringBuilder();
+        StringBuilder starStr = new StringBuilder("§6");
         for (int i = 0; i < 3; i++) {
             if (i <= stars-1)
                 starStr.append("★");
@@ -485,23 +489,28 @@ public class Items {
         List<String> loreList = meta.getLore();
 
         // Build lore for requirements
-        loreList.add("§fRequirements: ");
+        loreList.add(""); // Add line break
+//        loreList.add("§fRequirements: ");
         for (List<PerkType> requirement: requirements) {
             StringBuilder requirementString = new StringBuilder();
 
             // Check if the player has the required perk and build string
             boolean meetsRequirements = false;
             for (PerkType perkRequired: requirement) {
-                requirementString.append(perkRequired.getItem().getItemMeta().getDisplayName()).append(", ");
+                requirementString.append(perkRequired.getItem().getItemMeta().getDisplayName().replace("§e§o", "")).append(", ");
                 if (equippedPerks.remove(perkRequired.getPerk())) // Prevent double dipping requirements
                     meetsRequirements = true;
             }
 
             // Insert prefix based on whether player meets requirement
-            if (meetsRequirements)
-                requirementString.insert(0,"§a + ");
-            else
+            if (meetsRequirements) {
+                loreList.add("§f§aRequirements: ");
+                requirementString.insert(0, "§a + ");
+            }
+            else {
+                loreList.add("§f§cRequirements: ");
                 requirementString.insert(0, "§c - ");
+            }
             requirementString.deleteCharAt(requirementString.length()-2); // Remove second last character, the "," at the end of string
             loreList.add(requirementString.toString());
         }

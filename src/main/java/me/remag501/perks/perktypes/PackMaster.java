@@ -96,7 +96,7 @@ public class PackMaster extends Perk {
 
             // Heal lowest hp wolf
             minWolf.setHealth(20);
-            owner.sendMessage("§cYou have reached the maximum amount of wolves. Lowest HP wolf has been healed!");
+            owner.sendMessage("§c§l(!) §cYou have reached the maximum amount of wolves. Lowest HP wolf has been healed!");
             return;
         }
 
@@ -110,7 +110,7 @@ public class PackMaster extends Perk {
 //        wolf.setCollarColor(DyeColor.BROWN); // Optional: differentiate perk wolves
 
         // Add visual feedback (sound/message)
-        owner.sendMessage("§6A new wolf joins your pack!");
+        owner.sendMessage("§a§l(!) §aA new wolf joins your pack!");
         owner.playSound(owner, Sound.ENTITY_WOLF_WHINE, 1, 0);
 
         // Add the wolf's UUID to the instance state for tracking/cleanup

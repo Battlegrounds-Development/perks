@@ -69,7 +69,7 @@ public class GhostFist extends Perk {
                             entity.damage(damage, damager);
 //                            entity.setVelocity(knockback);
 
-                            damager.sendMessage("§7👊 Ghost Fist echoes through the air!");
+                            damager.sendMessage("§a§l(!) §aGhost Fist echoes through the air!");
                         } finally {
                             // 🧼 Remove tag immediately after
                             entity.removeMetadata(GHOST_FIST_META,

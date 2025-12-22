@@ -72,11 +72,11 @@ public class Kangaroo extends Perk {
             jumpVelocity.setY(1.0); // Adjust upward velocity
             eventPlayer.setVelocity(jumpVelocity);
 
-            eventPlayer.sendMessage("You used your double jump!");
+            eventPlayer.sendMessage("§a§l(!) §aYou used your double jump!");
             playDoubleJumpParticles(eventPlayer);
             startCooldown(eventPlayer);
         } else if (hasCooldown(eventPlayer)) {
-            eventPlayer.sendMessage("Double jump is on cooldown! Wait a bit longer.");
+            eventPlayer.sendMessage("§c§l(!) §cDouble jump is on cooldown! Wait a bit longer.");
         }
 
         if (eventPlayer.getGameMode() == GameMode.SURVIVAL || eventPlayer.getGameMode() == GameMode.ADVENTURE) {
@@ -110,7 +110,7 @@ public class Kangaroo extends Perk {
             @Override
             public void run() {
                 if (getPerk(player.getUniqueId()) == null) return;
-                player.sendMessage("Double jump is ready to use again!");
+                player.sendMessage("§a§l(!) §aDouble jump is ready to use again!");
             }
         }.runTaskLater(Bukkit.getPluginManager().getPlugin("Perks"), 600L); // 600 ticks = 30 seconds
     }

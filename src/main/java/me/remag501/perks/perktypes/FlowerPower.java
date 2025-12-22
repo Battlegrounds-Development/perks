@@ -59,7 +59,7 @@ public class FlowerPower extends Perk {
             double newDamage = event.getDamage() * multiplier;
             event.setDamage(newDamage);
 
-            player.sendMessage("§a🌸 Flower Power! §f+" + String.format("%.2f", (multiplier - 1) * 100) + "% damage boost!");
+            player.sendMessage("§a§l(!) §aFlower Power! §f+" + String.format("%.2f", (multiplier - 1) * 100) + "% §adamage boost!");
         }
     }
 

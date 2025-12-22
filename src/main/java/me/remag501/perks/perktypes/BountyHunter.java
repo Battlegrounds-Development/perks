@@ -36,7 +36,7 @@ public class BountyHunter extends Perk {
         if (perk == null) return; // Player doesn't have the perk equipped
 
         // Execute command to gain money
-        killer.sendMessage("§aYou collected $5000 for neutralizing a player!");
+        killer.sendMessage("§a§l(!) §aYou collected $5000 for neutralizing a player!");
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "eco give " + killer.getName() + " 5000");
     }
 }

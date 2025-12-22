@@ -39,7 +39,7 @@ public class XPFarm extends Perk {
         if (perk == null) return; // Player doesn't have the perk equipped
 
         // Execute command to gain xp
-        killer.sendMessage("§aYou received 300xp for neutralizing a player!");
+        killer.sendMessage("§a§l(!) §aYou received 300xp for neutralizing a player!");
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "clv addEXP 300 " + killer.getName());
 
     }

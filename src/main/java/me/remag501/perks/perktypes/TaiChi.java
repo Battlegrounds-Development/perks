@@ -44,7 +44,7 @@ public class TaiChi extends Perk {
             if (heldSince != null && System.currentTimeMillis() - heldSince >= 3000) {
                 entity.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 1));
                 entity.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
-                player.sendMessage("§6🔥 Tai Chi activated!");
+                player.sendMessage("§a§l(!) §aTai Chi activated!");
             }
         }
 //        else {

@@ -37,6 +37,7 @@ public class CookieClicker extends Perk {
         if (perk == null) return; // Player doesn't have the perk equipped
 
         // Drop two cookies at the victim's location
+        killer.sendMessage("§a§l(!) §aHow tasty!");
         World world = event.getEntity().getWorld();
         world.dropItemNaturally(event.getEntity().getLocation(), new ItemStack(Material.COOKIE, 2));
     }

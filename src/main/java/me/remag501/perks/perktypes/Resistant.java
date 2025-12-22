@@ -96,7 +96,7 @@ public class Resistant extends Perk {
 
                 isBloodied = true;
                 player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, amplifier)); // Strength I
-                player.sendMessage("You are resistant due to being low hp!");
+                player.sendMessage("§a§l(!) §aYou are resistant due to being low hp!");
             }
         } else {
             if (isBloodied) {
@@ -109,7 +109,7 @@ public class Resistant extends Perk {
                     duration = 0;
                 }
 
-                player.sendMessage("Your resistance fades as you heal.");
+                player.sendMessage("§c§l(!) §cYour resistance fades as you heal.");
             }
         }
     }

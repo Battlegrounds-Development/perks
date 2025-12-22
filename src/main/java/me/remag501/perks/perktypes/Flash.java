@@ -51,7 +51,7 @@ public class Flash extends Perk {
     // Method to apply Weakness for 4 seconds (80 ticks)
     private void applyWeakness(Player player) {
         if (getPerk(player.getUniqueId()) != null) { // Ensure the perk is still active
-            player.sendMessage("You feel weak from running too fast!");
+            player.sendMessage("§c§l(!) §cYou feel weak from running too fast!");
             player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0)); // Weakness I for 4 seconds
         }
     }

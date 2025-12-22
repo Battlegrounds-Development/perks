@@ -39,7 +39,7 @@ public class Serendipity extends Perk {
 
         if (ThreadLocalRandom.current().nextDouble() < 0.20) {
             event.setCancelled(true); // Negate damage
-            player.sendMessage("§aSerendipity activated! You took no damage.");
+            player.sendMessage("§a§l(!) §aSerendipity activated! You took no damage.");
         }
     }
 }

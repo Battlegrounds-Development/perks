@@ -197,7 +197,7 @@ public class PlayerPerks {
 
         // Message the player
         Player player = Bukkit.getPlayer(playerUUID);
-        player.sendMessage("§cYou have deequipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
+        player.sendMessage("§6§lPERKS §8» §7You have deequipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
 
         // Check if they are in the correct world before disabling
         boolean inWorld = false;
@@ -256,7 +256,7 @@ public class PlayerPerks {
         perkInstance = ownedPerks.get(perkType);
         if (perkInstance == null) return false; // Just in case
         equippedPerks.put(perkType, perkInstance);
-        player.sendMessage("§2You have equipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
+        player.sendMessage("§6§lPERKS §8» §7You have equipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
 
         // Only enables if the player is in the correct world
         boolean inWorld = false;
@@ -280,9 +280,9 @@ public class PlayerPerks {
 
         if (perkInstance != null) { // Perk already owned
             if (!perkInstance.addCount()) { // Perk deck is full, scrap one to add later
-                int points = scrapPerks(perkType, player);
+                int points = scrapPerks(perkType);
                 perkInstance.addCount(); // Add again since scrap removes a perk
-                player.sendMessage("You do not have enough storage for this perk, so it was automatically converted to " + points + " perk points.");
+                player.sendMessage("§6§lPERKS §8» §7You do not have enough storage for this perk, so it was automatically converted to " + points + " perk points.");
                 return false;
             }
             return true;
@@ -295,7 +295,7 @@ public class PlayerPerks {
         }
     }
 
-    public int scrapPerks(PerkType perkType, Player player) {
+    public int scrapPerks(PerkType perkType) {
         removeOwnedPerk(perkType);
         int perkAdd = 0;
         switch (Items.getRarity(perkType)) {
