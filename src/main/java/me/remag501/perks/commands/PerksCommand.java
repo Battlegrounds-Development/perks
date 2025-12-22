@@ -22,10 +22,10 @@ public class PerksCommand implements CommandExecutor {
     private Map<UUID, PlayerPerks> playerPerks;
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("§6§lPERKS §8» §7This command can only be executed by players.");
-            return true;
-        }
+//        if (!(sender instanceof Player) && !args[0].equalsIgnoreCase("hiddenui")) {
+//            sender.sendMessage("§6§lPERKS §8» §7This command can only be executed by players.");
+//            return true;
+//        }
         if (args.length == 0) {
             openPerkUI(sender, false);
             return true;

@@ -151,9 +151,7 @@ public class Items {
         }
         // Prepend the lores with rarity Str
         ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
-        for (int i = 0; i < loreList.size(); i++) {
-            loreList.set(i, "§8• §f" + loreList.get(i));
-        }
+        loreList.replaceAll(s -> "§8• §f" + s);
         loreList.add(0, rarityStr);
         // Make lores same color
         ItemStack item = Items.createItem(Material.PAPER, "§e§o" + name, id, cmd,false, loreList.toArray(new String[loreList.size()]));
