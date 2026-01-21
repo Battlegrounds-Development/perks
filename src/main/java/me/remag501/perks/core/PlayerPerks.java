@@ -171,10 +171,10 @@ public class PlayerPerks {
                             equippedPerkInstance.setStar(1);
 
                         // Disable the perk if the player is in world
-                        boolean inWorld = false;
-                        for (String world : PerkChangeListener.enabledWorlds) {
+                        boolean inWorld = true;
+                        for (String world : PerkChangeListener.disabledWorlds) {
                             if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-                                inWorld = true;
+                                inWorld = false;
                                 break;
                             }
                         }
@@ -200,10 +200,10 @@ public class PlayerPerks {
         player.sendMessage("§6§lPERKS §8» §7You have deequipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
 
         // Check if they are in the correct world before disabling
-        boolean inWorld = false;
-        for (String world: PerkChangeListener.enabledWorlds) {
+        boolean inWorld = true;
+        for (String world: PerkChangeListener.disabledWorlds) {
             if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-                inWorld = true;
+                inWorld = false;
                 break;
             }
         }
@@ -259,10 +259,10 @@ public class PlayerPerks {
         player.sendMessage("§6§lPERKS §8» §7You have equipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
 
         // Only enables if the player is in the correct world
-        boolean inWorld = false;
-        for (String world: PerkChangeListener.enabledWorlds) {
+        boolean inWorld = true;
+        for (String world: PerkChangeListener.disabledWorlds) {
             if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-                inWorld = true;
+                inWorld = false;
                 break;
             }
         }

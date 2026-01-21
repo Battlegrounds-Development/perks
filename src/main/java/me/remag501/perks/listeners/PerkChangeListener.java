@@ -18,21 +18,21 @@ import java.util.List;
 
 public class PerkChangeListener implements Listener {
 
-    public static List<String> enabledWorlds = new ArrayList<String>();
+    public final static List<String> dropWorlds = new ArrayList<>();
+    public final static List<String> disabledWorlds = new ArrayList<>();
+
+    private final static String BUNKER_PREFIX = "bunker";
+
 
     public PerkChangeListener() {
 
     }
 
-    public PerkChangeListener(List<String> disabledWorlds) {
-        this.enabledWorlds = disabledWorlds;
-    }
-
     private void checkAllowedWorld(Player player) {
-        String newWorld = player.getWorld().getName();
+        String newWorld = player.getWorld().getName().toLowerCase();
 
         // Check does not allow the world allows perks
-        if (!enabledWorlds.contains(newWorld)) {
+        if (disabledWorlds.contains(newWorld) || newWorld.startsWith(BUNKER_PREFIX)) {
             // Disable player's perks
 //            player.sendMessage("Perks disabled");
             disablePlayerPerks(player);
@@ -49,11 +49,11 @@ public class PerkChangeListener implements Listener {
 //        player.sendMessage("Perks: reached1");
         checkAllowedWorld(player);
         // Convert perk cards into player perks
-        String worldName = player.getWorld().getName();
-        if (!enabledWorlds.contains(worldName)) {
+        String worldName = player.getWorld().getName().toLowerCase();
+        if (disabledWorlds.contains(worldName) || worldName.startsWith(BUNKER_PREFIX)) {
             PlayerInventory inventory = player.getInventory();
             List<PerkType> collectedPerks = Items.itemsToPerks(inventory); // Get perks, and removes perk cards
-            if (collectedPerks.size() == 0)
+            if (collectedPerks.isEmpty())
                 return; // Player extracted no perks
             // Give perks to player
             PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
@@ -76,7 +76,13 @@ public class PerkChangeListener implements Listener {
         // Player loses on perk at random
         Player player = event.getEntity();
         String worldName = player.getWorld().getName();
-        if (enabledWorlds.contains(worldName)) { // Player died in region where they lose perk
+
+        if (!dropWorlds.contains(worldName)) { // Player is not in a drop perk world so they keep it
+
+            return;
+        }
+
+        if (!disabledWorlds.contains(worldName)) { // Player died in region where they lose perk
             // Pick a random perk to drop
             PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
             List<Perk> equippedPerks = playerPerks.getEquippedPerks();
@@ -137,6 +143,7 @@ public class PerkChangeListener implements Listener {
 //        player.sendMessage("Perks are enabled in this world.");
         // Loop through the player's active perks and enable them
         for (Perk perk : getPlayerActivePerks(player)) {
+//            player.sendMessage("reached " + perk.getItem().getItemMeta().getDisplayName());
             perk.onEnable();
         }
     }

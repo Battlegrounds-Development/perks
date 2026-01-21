@@ -34,16 +34,20 @@ public final class Perks extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ScrapUI(), this);
         getServer().getPluginManager().registerEvents(new EventSimulator(), this);
         // Enable worlds for the plugin
-        PerkChangeListener.enabledWorlds.add("sahara");
-        PerkChangeListener.enabledWorlds.add("icycaverns");
-        PerkChangeListener.enabledWorlds.add("kuroko");
-        PerkChangeListener.enabledWorlds.add("musicland");
-        PerkChangeListener.enabledWorlds.add("thundra");
-        PerkChangeListener.enabledWorlds.add("test");
+        PerkChangeListener.dropWorlds.add("sahara");
+        PerkChangeListener.dropWorlds.add("icycaverns");
+        PerkChangeListener.dropWorlds.add("kuroko");
+//        PerkChangeListener.disabledWorlds.add("musicland");
+//        PerkChangeListener.disabledWorlds.add("thundra");
+//        PerkChangeListener.disabledWorlds.add("test");
+        PerkChangeListener.disabledWorlds.add("spawn");
+        PerkChangeListener.disabledWorlds.add("dungeonhub");
+        PerkChangeListener.disabledWorlds.add("honeyclicker");
 //        // Enable listerners for perks
         for (PerkType perkType: PerkType.values()) {
             getServer().getPluginManager().registerEvents((Listener) perkType.getPerk(), this);
         }
+
         this.perks = this;
     }
 
