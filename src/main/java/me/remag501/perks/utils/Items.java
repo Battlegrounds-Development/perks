@@ -1,7 +1,7 @@
 package me.remag501.perks.utils;
 
-import me.remag501.perks.core.Perk;
-import me.remag501.perks.core.PerkType;
+import me.remag501.perks.perktypes.Perk;
+import me.remag501.perks.perktypes.PerkType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

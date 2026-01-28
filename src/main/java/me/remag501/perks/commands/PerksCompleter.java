@@ -1,6 +1,6 @@
 package me.remag501.perks.commands;
 
-import me.remag501.perks.core.PerkType;
+import me.remag501.perks.perktypes.PerkType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

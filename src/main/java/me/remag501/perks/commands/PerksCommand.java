@@ -1,14 +1,13 @@
 package me.remag501.perks.commands;
 
-import me.remag501.perks.core.PerkType;
-import me.remag501.perks.core.PlayerPerks;
+import me.remag501.perks.perktypes.PerkType;
+import me.remag501.perks.manager.PlayerPerks;
 import me.remag501.perks.utils.Items;
-import me.remag501.perks.utils.UI;
+import me.remag501.perks.listeners.UI;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
