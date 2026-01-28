@@ -1,10 +1,10 @@
 package me.remag501.perks.manager;
 
-import me.remag501.perks.perktypes.Perk;
-import me.remag501.perks.perktypes.PerkType;
-import me.remag501.perks.utils.ConfigUtil;
-import me.remag501.perks.utils.Items;
-import me.remag501.perks.listeners.PerkChangeListener;
+import me.remag501.perks.perk.Perk;
+import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.util.ConfigUtil;
+import me.remag501.perks.util.Items;
+import me.remag501.perks.listener.PerkChangeListener;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;

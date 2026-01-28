@@ -1,14 +1,14 @@
 package me.remag501.perks;
 
-import me.remag501.perks.commands.PerksCommand;
-import me.remag501.perks.commands.PerksCompleter;
-import me.remag501.perks.perktypes.Perk;
-import me.remag501.perks.perktypes.PerkType;
+import me.remag501.perks.command.PerksCommand;
+import me.remag501.perks.command.PerksCompleter;
+import me.remag501.perks.perk.Perk;
+import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PlayerPerks;
-import me.remag501.perks.listeners.GambleUI;
-import me.remag501.perks.listeners.PerkChangeListener;
-import me.remag501.perks.listeners.ScrapUI;
-import me.remag501.perks.listeners.UI;
+import me.remag501.perks.listener.GambleUI;
+import me.remag501.perks.listener.PerkChangeListener;
+import me.remag501.perks.listener.ScrapUI;
+import me.remag501.perks.listener.UI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
