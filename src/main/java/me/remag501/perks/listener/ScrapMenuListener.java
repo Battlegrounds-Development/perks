@@ -16,11 +16,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class ScrapUI implements Listener {
+public class ScrapMenuListener implements Listener {
     private final Inventory scrapInventory;
     private static HashMap<UUID, PerkType> scrapPerkCache;
 
-    public ScrapUI() {
+    public ScrapMenuListener() {
         this.scrapInventory = Bukkit.createInventory(null, 9, "Confirm Scrap");
         loadItems();
         scrapPerkCache = new HashMap<UUID, PerkType>();
@@ -76,7 +76,7 @@ public class ScrapUI implements Listener {
         }
 
         // Return to previous UI
-        UI ui = new UI(PlayerPerks.getPlayerPerks(player.getUniqueId()), false);
+        PerkMenuListener ui = new PerkMenuListener(PlayerPerks.getPlayerPerks(player.getUniqueId()), false);
         Inventory perkMenu = ui.getPerkMenu();
         player.openInventory(perkMenu);
     }

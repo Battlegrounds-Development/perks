@@ -3,7 +3,7 @@ package me.remag501.perks.listener;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PlayerPerks;
-import me.remag501.perks.util.Items;
+import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -17,14 +17,14 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-public class UI implements Listener {
+public class PerkMenuListener implements Listener {
 
     private PlayerPerks perks;
     private Inventory perkInventory;
     private boolean hiddenMenu;
 //    private int perkPoints;
 
-    public UI(PlayerPerks perks, boolean hiddenMenu) {
+    public PerkMenuListener(PlayerPerks perks, boolean hiddenMenu) {
         this.hiddenMenu = hiddenMenu;
         this.perks = perks;
 //        this.perkPoints = perks.getPerkPoints(); // Hit with null
@@ -45,10 +45,10 @@ public class UI implements Listener {
         // Place player head in first slot
         // Skipping for now since I need a way to get the player's username
         Player player = Bukkit.getPlayer(perks.getPlayerUUID());
-        ItemStack head = Items.createPerkSkull(perks.getPlayerUUID(), player.getDisplayName(), player.getDisplayName());
+        ItemStack head = ItemUtil.createPerkSkull(perks.getPlayerUUID(), player.getDisplayName(), player.getDisplayName());
         perkInventory.setItem(0, head);
         // Place rolling perks in top right
-        ItemStack perkRollButton = Items.createItem(Material.SUNFLOWER, "§6§lOBTAIN PERKS", "casino", false, "§7Perk Points: " + perks.getPerkPoints());
+        ItemStack perkRollButton = ItemUtil.createItem(Material.SUNFLOWER, "§6§lOBTAIN PERKS", "casino", false, "§7Perk Points: " + perks.getPerkPoints());
         perkInventory.setItem(8, perkRollButton);
     }
 
@@ -61,7 +61,7 @@ public class UI implements Listener {
 //                ItemStack perkItem = Items.createPerkItem(equippedPerks.get(i));
 //                ItemStack perkItem = equippedPerks.get(i).getItem();
                 ItemStack perkItem = equippedPerks.get(i).getItem().clone(); // Prevent mutilating enum object
-                Items.updateStarCount(perkItem, equippedPerks); // Display star lore
+                ItemUtil.updateStarCount(perkItem, equippedPerks); // Display star lore
                 perkInventory.setItem(2 + i, perkItem);
             } else
                 perkInventory.setItem(2 + i, new ItemStack(Material.AIR));
@@ -86,12 +86,12 @@ public class UI implements Listener {
 //                    continue;
 //                }
                 // Display the perk item
-                Items.updateEquipStatus(item, equippedPerks);
-                Items.updateCount(item, ownedPerks); // Stars are updated with updateCount
-                Items.updateRequirements(item, equippedPerks, PerkType.values()[k-1]); // Requirements are shown
+                ItemUtil.updateEquipStatus(item, equippedPerks);
+                ItemUtil.updateCount(item, ownedPerks); // Stars are updated with updateCount
+                ItemUtil.updateRequirements(item, equippedPerks, PerkType.values()[k-1]); // Requirements are shown
                 perkInventory.setItem(i, item);
             } else
-                perkInventory.setItem(i, Items.createItem(Material.BARRIER, "???", null, true));
+                perkInventory.setItem(i, ItemUtil.createItem(Material.BARRIER, "???", null, true));
         }
 //        ItemStack perkItem = PerkType.SWORD_PERK.getItem().clone();
 //        ItemMeta meta = perkItem.getItemMeta().clone();
@@ -107,13 +107,13 @@ public class UI implements Listener {
 //        int totalPages = Perk.perkAmount / 36;
 
         if (page == totalPages - 1) // Last page
-            perkInventory.setItem(53, Items.createItem(Material.PAPER, "§f§lLAST PAGE", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // No button needed
+            perkInventory.setItem(53, ItemUtil.createItem(Material.PAPER, "§f§lLAST PAGE", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // No button needed
         else // Not last page
-            perkInventory.setItem(53, Items.createItem(Material.GREEN_DYE, "§a§lNEXT", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // Add next button
+            perkInventory.setItem(53, ItemUtil.createItem(Material.GREEN_DYE, "§a§lNEXT", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // Add next button
         if (page == 0) // First page
-            perkInventory.setItem(45, Items.createItem(Material.PAPER, "§f§lFIRST PAGE", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // No button needed
+            perkInventory.setItem(45, ItemUtil.createItem(Material.PAPER, "§f§lFIRST PAGE", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // No button needed
         else // Not first page
-            perkInventory.setItem(45, Items.createItem(Material.RED_DYE, "§c§lBACK", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // Add back button
+            perkInventory.setItem(45, ItemUtil.createItem(Material.RED_DYE, "§c§lBACK", null, false, "§7§o" + (page + 1) + "/" + totalPages)); // Add back button
 
     }
 
@@ -143,7 +143,7 @@ public class UI implements Listener {
                 return;
             } // Check if player clicked on perk gamble
              else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§6§lOBTAIN PERKS")) {
-                GambleUI rollUI = new GambleUI();
+                GambleMenuListener rollUI = new GambleMenuListener();
                 rollUI.open(player);
             } else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§a§lNEXT")) {
                 pageNum++;
@@ -153,9 +153,9 @@ public class UI implements Listener {
             else {
                 // Check if the player clicks on a perk
                 for (PerkType perkType : PerkType.values()) {
-                    if (Items.areItemsEqual(event.getCurrentItem(), perkType.getItem())) {
+                    if (ItemUtil.areItemsEqual(event.getCurrentItem(), perkType.getItem())) {
                         // Check if the perk event is triggered by hidden item, if so make this object have hidden perks
-                        if (Items.hiddenItem(event.getCurrentItem()))
+                        if (ItemUtil.hiddenItem(event.getCurrentItem()))
                         {
                             hiddenMenu = true;
 //                        player.sendMessage("You clicked on a hidden item");
@@ -175,7 +175,7 @@ public class UI implements Listener {
                             if (perks.removeEquippedPerk(perkType))
                                 player.playSound(player, Sound.UI_BUTTON_CLICK, 10, 2);
                             else { // Player scraps items
-                                ScrapUI scrapUI = new ScrapUI();
+                                ScrapMenuListener scrapUI = new ScrapMenuListener();
                                 scrapUI.open(player, perkType);
                             }
 //                                player.playSound(player, Sound.ENTITY_VILLAGER_NO, 10, 1); replace with confirm scrap ui

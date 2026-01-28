@@ -2,7 +2,7 @@ package me.remag501.perks.listener;
 
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PlayerPerks;
-import me.remag501.perks.util.Items;
+import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
@@ -17,13 +17,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
-public class GambleUI implements Listener {
+public class GambleMenuListener implements Listener {
 
 //    private Player player;
     private Inventory rollInventory;
 //    private PlayerPerks playerPerks;
 
-    public GambleUI() {
+    public GambleMenuListener() {
 //        this.player = player;
 //        this.playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
         rollInventory = Bukkit.createInventory(null, 27, "Roll for Perks");
@@ -35,10 +35,10 @@ public class GambleUI implements Listener {
 //        }
         PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
         int perkPoints = playerPerks.getPerkPoints();
-        ItemStack commonButton = Items.createItem(Material.WHITE_STAINED_GLASS_PANE, "§f§lCOMMON", "common", true, "§7Costs 2 out of " + perkPoints + " perk points.");
-        ItemStack uncommonButton = Items.createItem(Material.GREEN_STAINED_GLASS_PANE, "§a§lUNCOMMON", "uncommon", true, "§7Costs 4 out of " + perkPoints + " perk points.");
-        ItemStack rareButton = Items.createItem(Material.BLUE_STAINED_GLASS_PANE, "§1§lRARE", "rare", true, "§7Costs 7 out of " + perkPoints + " perk points.");
-        ItemStack legendaryButton = Items.createItem(Material.ORANGE_STAINED_GLASS_PANE, "§6§lLEGENDARY", "legendary", true, "§7Costs 10 out of " + perkPoints + " perk points.");
+        ItemStack commonButton = ItemUtil.createItem(Material.WHITE_STAINED_GLASS_PANE, "§f§lCOMMON", "common", true, "§7Costs 2 out of " + perkPoints + " perk points.");
+        ItemStack uncommonButton = ItemUtil.createItem(Material.GREEN_STAINED_GLASS_PANE, "§a§lUNCOMMON", "uncommon", true, "§7Costs 4 out of " + perkPoints + " perk points.");
+        ItemStack rareButton = ItemUtil.createItem(Material.BLUE_STAINED_GLASS_PANE, "§1§lRARE", "rare", true, "§7Costs 7 out of " + perkPoints + " perk points.");
+        ItemStack legendaryButton = ItemUtil.createItem(Material.ORANGE_STAINED_GLASS_PANE, "§6§lLEGENDARY", "legendary", true, "§7Costs 10 out of " + perkPoints + " perk points.");
         // Set Locations
         rollInventory.setItem(10, commonButton);
         rollInventory.setItem(12, uncommonButton);
@@ -60,7 +60,7 @@ public class GambleUI implements Listener {
     }
 
     private void prevUI(Player player) {
-        UI ui = new UI(PlayerPerks.getPlayerPerks(player.getUniqueId()), false);
+        PerkMenuListener ui = new PerkMenuListener(PlayerPerks.getPlayerPerks(player.getUniqueId()), false);
         Inventory perkMenu = ui.getPerkMenu();
         player.openInventory(perkMenu);
     }
@@ -145,7 +145,7 @@ public class GambleUI implements Listener {
         // ✅ Reopen the inventory after 3 seconds
         Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("Perks"), () -> {
             // Open the perk UI after delay
-            GambleUI rollUI = new GambleUI();
+            GambleMenuListener rollUI = new GambleMenuListener();
             rollUI.open(player);
         }, 45L); // 60 ticks = 3 seconds
     }

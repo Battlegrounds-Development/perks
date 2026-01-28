@@ -3,7 +3,7 @@ package me.remag501.perks.manager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.util.ConfigUtil;
-import me.remag501.perks.util.Items;
+import me.remag501.perks.util.ItemUtil;
 import me.remag501.perks.listener.PerkChangeListener;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -51,15 +51,15 @@ public class PlayerPerks {
             for (Perk perk: playerPerk.getEquippedPerks()) {
                 if (perk.isStarPerk()) {
                     for (int i = 0; i < perk.getStars(); i++)
-                        save.add(Items.getPerkID(perk.getItem()));
+                        save.add(ItemUtil.getPerkID(perk.getItem()));
                 } else
-                    save.add(Items.getPerkID(perk.getItem()));
+                    save.add(ItemUtil.getPerkID(perk.getItem()));
             }
             perkConfig.set(playerIDString + "_equipped", save);
             // Add owned perks to config
             save = new ArrayList<>();
             for (Perk perk: playerPerk.getOwnedPerks())
-                save.add(Items.getPerkID(perk.getItem()));
+                save.add(ItemUtil.getPerkID(perk.getItem()));
             save.add(playerPerk.perkPoints + ""); // Save perk points under owned
             perkConfig.set(playerIDString + "_owned", save);
         }
@@ -300,7 +300,7 @@ public class PlayerPerks {
     public int scrapPerks(PerkType perkType) {
         removeOwnedPerk(perkType);
         int perkAdd = 0;
-        switch (Items.getRarity(perkType)) {
+        switch (ItemUtil.getRarity(perkType)) {
             case 0:
                 perkAdd = 1;
                 break;

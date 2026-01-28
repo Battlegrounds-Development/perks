@@ -2,8 +2,8 @@ package me.remag501.perks.command;
 
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PlayerPerks;
-import me.remag501.perks.util.Items;
-import me.remag501.perks.listener.UI;
+import me.remag501.perks.util.ItemUtil;
+import me.remag501.perks.listener.PerkMenuListener;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -121,7 +121,7 @@ public class PerksCommand implements CommandExecutor {
         }
 
         // Get the perk card itemstack and give to player
-        player.getInventory().addItem(Items.getPerkCard(perkType));
+        player.getInventory().addItem(ItemUtil.getPerkCard(perkType));
 
     }
 
@@ -215,7 +215,7 @@ public class PerksCommand implements CommandExecutor {
         if (perks == null) {
             perks = new PlayerPerks(player.getUniqueId());
         }
-        UI ui = new UI(PlayerPerks.getPlayerPerks(player.getUniqueId()), hiddenMenu);
+        PerkMenuListener ui = new PerkMenuListener(PlayerPerks.getPlayerPerks(player.getUniqueId()), hiddenMenu);
         Inventory perkMenu = ui.getPerkMenu();
         player.openInventory(perkMenu);
     }

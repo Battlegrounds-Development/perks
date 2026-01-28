@@ -3,7 +3,7 @@ package me.remag501.perks.listener;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PlayerPerks;
-import me.remag501.perks.util.Items;
+import me.remag501.perks.util.ItemUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -52,7 +52,7 @@ public class PerkChangeListener implements Listener {
         String worldName = player.getWorld().getName().toLowerCase();
         if (disabledWorlds.contains(worldName) || worldName.startsWith(BUNKER_PREFIX)) {
             PlayerInventory inventory = player.getInventory();
-            List<PerkType> collectedPerks = Items.itemsToPerks(inventory); // Get perks, and removes perk cards
+            List<PerkType> collectedPerks = ItemUtil.itemsToPerks(inventory); // Get perks, and removes perk cards
             if (collectedPerks.isEmpty())
                 return; // Player extracted no perks
             // Give perks to player
@@ -91,7 +91,7 @@ public class PerkChangeListener implements Listener {
             int droppedIndex = (int) (Math.random() * equippedPerks.size());
             Perk dropped = equippedPerks.get(droppedIndex);
             // Convert to item and put in itemstack
-            ItemStack perkItem = Items.getPerkCard(PerkType.getPerkType(dropped));
+            ItemStack perkItem = ItemUtil.getPerkCard(PerkType.getPerkType(dropped));
             List<ItemStack> drops = event.getDrops();
             drops.add(perkItem);
             // Remove perk from equipped perks

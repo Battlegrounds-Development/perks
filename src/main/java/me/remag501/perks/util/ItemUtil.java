@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class Items {
+public class ItemUtil {
 
     /*
 
@@ -67,7 +67,7 @@ public class Items {
 //        loreList.addAll(Arrays.asList(lores));
         ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
         loreList.add(0, rarityStr);
-                ItemStack item = Items.createItem(type, name, id, false, loreList.toArray(new String[loreList.size()]));
+                ItemStack item = ItemUtil.createItem(type, name, id, false, loreList.toArray(new String[loreList.size()]));
         // Add tag for hidden rarity
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
@@ -154,7 +154,7 @@ public class Items {
         loreList.replaceAll(s -> "§8• §f" + s);
         loreList.add(0, rarityStr);
         // Make lores same color
-        ItemStack item = Items.createItem(Material.PAPER, "§e§o" + name, id, cmd,false, loreList.toArray(new String[loreList.size()]));
+        ItemStack item = ItemUtil.createItem(Material.PAPER, "§e§o" + name, id, cmd,false, loreList.toArray(new String[loreList.size()]));
         // Add tag for hidden rarity
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
