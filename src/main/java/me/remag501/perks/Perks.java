@@ -5,7 +5,6 @@ import me.remag501.perks.commands.PerksCompleter;
 import me.remag501.perks.core.Perk;
 import me.remag501.perks.core.PerkType;
 import me.remag501.perks.core.PlayerPerks;
-import me.remag501.perks.listeners.EventSimulator;
 import me.remag501.perks.utils.GambleUI;
 import me.remag501.perks.listeners.PerkChangeListener;
 import me.remag501.perks.utils.ScrapUI;
@@ -32,7 +31,6 @@ public final class Perks extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GambleUI(), this);
         getServer().getPluginManager().registerEvents(new PerkChangeListener(), this);
         getServer().getPluginManager().registerEvents(new ScrapUI(), this);
-        getServer().getPluginManager().registerEvents(new EventSimulator(), this);
         // Enable worlds for the plugin
         PerkChangeListener.dropWorlds.add("sahara");
         PerkChangeListener.dropWorlds.add("icycaverns");
