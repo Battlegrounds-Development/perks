@@ -1,7 +1,7 @@
 package me.remag501.perks.listener;
 
 import me.remag501.perks.perk.PerkType;
-import me.remag501.perks.manager.PlayerPerks;
+import me.remag501.perks.manager.PerkManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -16,11 +16,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class ScrapMenuListener implements Listener {
+public class ScrapListener implements Listener {
     private final Inventory scrapInventory;
     private static HashMap<UUID, PerkType> scrapPerkCache;
 
-    public ScrapMenuListener() {
+    public ScrapListener() {
         this.scrapInventory = Bukkit.createInventory(null, 9, "Confirm Scrap");
         loadItems();
         scrapPerkCache = new HashMap<UUID, PerkType>();
@@ -59,11 +59,11 @@ public class ScrapMenuListener implements Listener {
 
         // Get the perkType getting scrapped and player perk instance
         PerkType perkType = scrapPerkCache.get(player.getUniqueId());
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
 
         switch (clickedItem.getType()) {
             case GREEN_WOOL: // Confirm
-                int points = playerPerks.scrapPerks(perkType);
+                int points = perkManager.scrapPerks(perkType);
                 player.sendMessage("§6§lPERKS §8» §7You have scrapped the perk " + perkType.getItem().getItemMeta().getDisplayName() + " §7for " + points + " points!");
                 player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f);
                 break;
@@ -76,7 +76,7 @@ public class ScrapMenuListener implements Listener {
         }
 
         // Return to previous UI
-        PerkMenuListener ui = new PerkMenuListener(PlayerPerks.getPlayerPerks(player.getUniqueId()), false);
+        PerkMenuListener ui = new PerkMenuListener(PerkManager.getPlayerPerks(player.getUniqueId()), false);
         Inventory perkMenu = ui.getPerkMenu();
         player.openInventory(perkMenu);
     }

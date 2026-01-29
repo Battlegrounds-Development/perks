@@ -1,7 +1,7 @@
 package me.remag501.perks.command;
 
 import me.remag501.perks.perk.PerkType;
-import me.remag501.perks.manager.PlayerPerks;
+import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.util.ItemUtil;
 import me.remag501.perks.listener.PerkMenuListener;
 import org.bukkit.Bukkit;
@@ -18,7 +18,7 @@ public class PerksCommand implements CommandExecutor {
 
     private Plugin plugin;
     private Map<String, String> messages;
-    private Map<UUID, PlayerPerks> playerPerks;
+    private Map<UUID, PerkManager> playerPerks;
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 //        if (!(sender instanceof Player) && !args[0].equalsIgnoreCase("hiddenui")) {
@@ -132,8 +132,8 @@ public class PerksCommand implements CommandExecutor {
             Bukkit.getPluginManager().getPlugin("Perks").getLogger().info("Player " + playerName + " from add perk points could not be founds.");
             return;
         }
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-        playerPerks.addPerkPoints(points);
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
+        perkManager.addPerkPoints(points);
         player.sendMessage("§6§lPERKS §8» §7You recieved " + points + " perk points.");
     }
 
@@ -147,12 +147,12 @@ public class PerksCommand implements CommandExecutor {
             return;
         }
         // Gets object of PlayerPerks from UUID
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
 //        if (playerPerks == null) {
 //            playerPerks = new PlayerPerks(((Player) player).getUniqueId());
 //        } Add perks should not instantinate PlayerPerks
         // Add perk to players owned perks list
-        if(playerPerks.addOwnedPerks(perk))
+        if(perkManager.addOwnedPerks(perk))
             player.sendMessage("§6§lPERKS §8» §7Added perk: " + perkName);
 //        else
 //            player.sendMessage("You have cannot have more than three perk cards");
@@ -189,12 +189,12 @@ public class PerksCommand implements CommandExecutor {
         }
         sender.sendMessage("§6§lPERKS §8» §cRemoved perk: " + perkType);
         // Gets object of PlayerPerks from UUID
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-        if (playerPerks == null) {
-            playerPerks = new PlayerPerks(player.getUniqueId());
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
+        if (perkManager == null) {
+            perkManager = new PerkManager(player.getUniqueId());
         }
         // Remove perk from players owned perks list
-        playerPerks.removeOwnedPerk(perk);
+        perkManager.removeOwnedPerk(perk);
     }
 
     private void reload() {
@@ -211,11 +211,11 @@ public class PerksCommand implements CommandExecutor {
 
         Player player = (Player) sender;
         // Open the inventory for the player
-        PlayerPerks perks = PlayerPerks.getPlayerPerks(player.getUniqueId());
+        PerkManager perks = PerkManager.getPlayerPerks(player.getUniqueId());
         if (perks == null) {
-            perks = new PlayerPerks(player.getUniqueId());
+            perks = new PerkManager(player.getUniqueId());
         }
-        PerkMenuListener ui = new PerkMenuListener(PlayerPerks.getPlayerPerks(player.getUniqueId()), hiddenMenu);
+        PerkMenuListener ui = new PerkMenuListener(PerkManager.getPlayerPerks(player.getUniqueId()), hiddenMenu);
         Inventory perkMenu = ui.getPerkMenu();
         player.openInventory(perkMenu);
     }

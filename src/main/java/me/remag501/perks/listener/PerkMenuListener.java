@@ -2,7 +2,7 @@ package me.remag501.perks.listener;
 
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
-import me.remag501.perks.manager.PlayerPerks;
+import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,12 +19,12 @@ import java.util.List;
 
 public class PerkMenuListener implements Listener {
 
-    private PlayerPerks perks;
+    private PerkManager perks;
     private Inventory perkInventory;
     private boolean hiddenMenu;
 //    private int perkPoints;
 
-    public PerkMenuListener(PlayerPerks perks, boolean hiddenMenu) {
+    public PerkMenuListener(PerkManager perks, boolean hiddenMenu) {
         this.hiddenMenu = hiddenMenu;
         this.perks = perks;
 //        this.perkPoints = perks.getPerkPoints(); // Hit with null
@@ -121,7 +121,7 @@ public class PerkMenuListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        perks = PlayerPerks.getPlayerPerks(player.getUniqueId());
+        perks = PerkManager.getPlayerPerks(player.getUniqueId());
 
         // Check if the clicked inventory is the perk UI
         if (event.getView().getTitle().equals("Choose Your Perk")) {
@@ -143,7 +143,7 @@ public class PerkMenuListener implements Listener {
                 return;
             } // Check if player clicked on perk gamble
              else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§6§lOBTAIN PERKS")) {
-                GambleMenuListener rollUI = new GambleMenuListener();
+                GambleListener rollUI = new GambleListener();
                 rollUI.open(player);
             } else if (event.getCurrentItem().getItemMeta().getDisplayName().equals("§a§lNEXT")) {
                 pageNum++;
@@ -175,7 +175,7 @@ public class PerkMenuListener implements Listener {
                             if (perks.removeEquippedPerk(perkType))
                                 player.playSound(player, Sound.UI_BUTTON_CLICK, 10, 2);
                             else { // Player scraps items
-                                ScrapMenuListener scrapUI = new ScrapMenuListener();
+                                ScrapListener scrapUI = new ScrapListener();
                                 scrapUI.open(player, perkType);
                             }
 //                                player.playSound(player, Sound.ENTITY_VILLAGER_NO, 10, 1); replace with confirm scrap ui

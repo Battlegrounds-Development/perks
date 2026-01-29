@@ -2,7 +2,7 @@ package me.remag501.perks.listener;
 
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
-import me.remag501.perks.manager.PlayerPerks;
+import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -56,7 +56,7 @@ public class PerkChangeListener implements Listener {
             if (collectedPerks.isEmpty())
                 return; // Player extracted no perks
             // Give perks to player
-            PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
+            PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
             for (PerkType perkType: collectedPerks) {
                 // Create colored string for perk name
                 ItemMeta itemMeta = perkType.getItem().getItemMeta();
@@ -64,7 +64,7 @@ public class PerkChangeListener implements Listener {
                 char colorCode = firstLine.charAt(1);
                 String itemName = "§" + colorCode + "§l" + itemMeta.getDisplayName();
                 player.sendMessage("§aYou have obtained " + itemName); // Notify player
-                playerPerks.addOwnedPerks(perkType);
+                perkManager.addOwnedPerks(perkType);
             }
         }
     }
@@ -84,8 +84,8 @@ public class PerkChangeListener implements Listener {
 
         if (!disabledWorlds.contains(worldName)) { // Player died in region where they lose perk
             // Pick a random perk to drop
-            PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-            List<Perk> equippedPerks = playerPerks.getEquippedPerks();
+            PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
+            List<Perk> equippedPerks = perkManager.getEquippedPerks();
             if (equippedPerks.size() == 0)
                 return; // Player has no perks equipped, they lose nothing
             int droppedIndex = (int) (Math.random() * equippedPerks.size());
@@ -95,12 +95,12 @@ public class PerkChangeListener implements Listener {
             List<ItemStack> drops = event.getDrops();
             drops.add(perkItem);
             // Remove perk from equipped perks
-            playerPerks.removeOwnedPerk(PerkType.getPerkType(dropped));
+            perkManager.removeOwnedPerk(PerkType.getPerkType(dropped));
             if (dropped.isStarPerk()) { // Drop all star perks
                 int stars = dropped.getStars();
                 for (int i = 0; i < stars; i++) { // removeOwnedPerks, already takes away a star
                     player.sendMessage("reached");
-                    playerPerks.removeOwnedPerk(PerkType.getPerkType(dropped));
+                    perkManager.removeOwnedPerk(PerkType.getPerkType(dropped));
                     drops.add(perkItem);
                 }
             }
@@ -119,9 +119,9 @@ public class PerkChangeListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         // Check if player has perks loaded
         Player player = event.getPlayer();
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-        if (playerPerks == null)
-            new PlayerPerks(((Player) player).getUniqueId());
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
+        if (perkManager == null)
+            new PerkManager(((Player) player).getUniqueId());
         // Check if player can enable their perks
         checkAllowedWorld(player);
     }
@@ -149,6 +149,6 @@ public class PerkChangeListener implements Listener {
     }
 
     private List<Perk> getPlayerActivePerks(Player player) {
-        return PlayerPerks.getPlayerPerks(player.getUniqueId()).getEquippedPerks();
+        return PerkManager.getPlayerPerks(player.getUniqueId()).getEquippedPerks();
     }
 }

@@ -1,7 +1,7 @@
 package me.remag501.perks.listener;
 
 import me.remag501.perks.perk.PerkType;
-import me.remag501.perks.manager.PlayerPerks;
+import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
@@ -17,13 +17,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
-public class GambleMenuListener implements Listener {
+public class GambleListener implements Listener {
 
 //    private Player player;
     private Inventory rollInventory;
 //    private PlayerPerks playerPerks;
 
-    public GambleMenuListener() {
+    public GambleListener() {
 //        this.player = player;
 //        this.playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
         rollInventory = Bukkit.createInventory(null, 27, "Roll for Perks");
@@ -33,8 +33,8 @@ public class GambleMenuListener implements Listener {
 //        for (int i = 0; i < 27; i++) {
 //            rollInventory.setItem(i, new ItemStack(Material.PAPER)); // Example items for rolling
 //        }
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-        int perkPoints = playerPerks.getPerkPoints();
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
+        int perkPoints = perkManager.getPerkPoints();
         ItemStack commonButton = ItemUtil.createItem(Material.WHITE_STAINED_GLASS_PANE, "§f§lCOMMON", "common", true, "§7Costs 2 out of " + perkPoints + " perk points.");
         ItemStack uncommonButton = ItemUtil.createItem(Material.GREEN_STAINED_GLASS_PANE, "§a§lUNCOMMON", "uncommon", true, "§7Costs 4 out of " + perkPoints + " perk points.");
         ItemStack rareButton = ItemUtil.createItem(Material.BLUE_STAINED_GLASS_PANE, "§1§lRARE", "rare", true, "§7Costs 7 out of " + perkPoints + " perk points.");
@@ -60,7 +60,7 @@ public class GambleMenuListener implements Listener {
     }
 
     private void prevUI(Player player) {
-        PerkMenuListener ui = new PerkMenuListener(PlayerPerks.getPlayerPerks(player.getUniqueId()), false);
+        PerkMenuListener ui = new PerkMenuListener(PerkManager.getPlayerPerks(player.getUniqueId()), false);
         Inventory perkMenu = ui.getPerkMenu();
         player.openInventory(perkMenu);
     }
@@ -145,7 +145,7 @@ public class GambleMenuListener implements Listener {
         // ✅ Reopen the inventory after 3 seconds
         Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("Perks"), () -> {
             // Open the perk UI after delay
-            GambleMenuListener rollUI = new GambleMenuListener();
+            GambleListener rollUI = new GambleListener();
             rollUI.open(player);
         }, 45L); // 60 ticks = 3 seconds
     }
@@ -155,8 +155,8 @@ public class GambleMenuListener implements Listener {
 
     private boolean rollPerk(Player player, int rarity, int cost) {
         // Charge player perks, if it fails then it won't roll
-        PlayerPerks playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-        if (!playerPerks.decreasePerkPoints(cost))
+        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
+        if (!perkManager.decreasePerkPoints(cost))
             return false; // Not enough points
         // Determine whether player rolls higher rarity
         int firstRoll = (int) (Math.random() * 100) + 1;
@@ -173,7 +173,7 @@ public class GambleMenuListener implements Listener {
         // Animation for rolling perk
         triggerTotemAnimation(player, perkType);
         // Add perk to player
-        playerPerks.addOwnedPerks(perkType);
+        perkManager.addOwnedPerks(perkType);
         player.sendMessage("§6§lPERKS §8» §7You obtained the perk: " + perkType.getItem().getItemMeta().getDisplayName());
         return true;
     }

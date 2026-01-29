@@ -11,9 +11,9 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class PlayerPerks {
+public class PerkManager {
 
-    private static HashMap<UUID, PlayerPerks> playersPerks = new HashMap<>();
+    private static HashMap<UUID, PerkManager> playersPerks = new HashMap<>();
     private UUID playerUUID;
 //    private Set<PlayerPerkInstance> equippedPerks;
 //    private List<Perk> ownedPerks;
@@ -21,7 +21,7 @@ public class PlayerPerks {
     private Map<PerkType, Perk> ownedPerks;
     private int perkPoints;
 
-    public static PlayerPerks getPlayerPerks(UUID playerUUID) {
+    public static PerkManager getPlayerPerks(UUID playerUUID) {
         return playersPerks.get(playerUUID);
     }
 
@@ -44,7 +44,7 @@ public class PlayerPerks {
         FileConfiguration perkConfig = perkConfigUtil.getConfig();
         // Iterate through set of perks for each player
         for (UUID playerID: playersPerks.keySet()) {
-            PlayerPerks playerPerk = playersPerks.get(playerID);
+            PerkManager playerPerk = playersPerks.get(playerID);
             String playerIDString = playerID.toString();
             // Convert to list to set in the config file
             List<String> save = new ArrayList<>();
@@ -83,7 +83,7 @@ public class PlayerPerks {
     }
 
     // Should only be on player join
-    public PlayerPerks(UUID playerUUID) {
+    public PerkManager(UUID playerUUID) {
         equippedPerks = new HashMap<PerkType, Perk>();
         ownedPerks = new HashMap<PerkType, Perk>();
         playersPerks.put(playerUUID, this);
