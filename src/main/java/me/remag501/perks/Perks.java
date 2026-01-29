@@ -2,6 +2,7 @@ package me.remag501.perks;
 
 import me.remag501.perks.command.PerksCommand;
 import me.remag501.perks.command.PerksCompleter;
+import me.remag501.perks.manager.GambleManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
@@ -23,14 +24,18 @@ public final class Perks extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         getServer().getLogger().info("Perks has started up!");
+        // Create managers for plugin
+        GambleManager gambleManager = new GambleManager(this);
+        // Register listeners for Perks UIs
+        getServer().getPluginManager().registerEvents(new PerkMenuListener(), this);
+        getServer().getPluginManager().registerEvents(new GambleListener(gambleManager), this);
+        getServer().getPluginManager().registerEvents(new PerkChangeListener(), this);
+        getServer().getPluginManager().registerEvents(new ScrapListener(), this);
+
         // Add commands to the plugin
         getCommand("perks").setExecutor(new PerksCommand(this));
         getCommand("perks").setTabCompleter(new PerksCompleter(this));
-        // Register listeners for Perks UIs
-        getServer().getPluginManager().registerEvents(new PerkMenuListener(null, false), this);
-        getServer().getPluginManager().registerEvents(new GambleListener(), this);
-        getServer().getPluginManager().registerEvents(new PerkChangeListener(), this);
-        getServer().getPluginManager().registerEvents(new ScrapListener(), this);
+
         // Enable worlds for the plugin
         PerkChangeListener.dropWorlds.add("sahara");
         PerkChangeListener.dropWorlds.add("icycaverns");

@@ -1,42 +1,70 @@
 package me.remag501.perks.manager;
 
-import me.remag501.perks.util.ItemUtil;
+import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.ui.GambleMenu;
 import org.bukkit.Bukkit;
+import org.bukkit.EntityEffect;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+
+import java.util.List;
 
 public class GambleManager {
 
-    public static void openInventory(Player player) {
+    private final Plugin plugin;
 
-        Inventory rollInventory = Bukkit.createInventory(null, 27, "Roll for Perks");
-
-        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
-        int perkPoints = perkManager.getPerkPoints();
-        ItemStack commonButton = ItemUtil.createItem(Material.WHITE_STAINED_GLASS_PANE, "§f§lCOMMON", "common", true, "§7Costs 2 out of " + perkPoints + " perk points.");
-        ItemStack uncommonButton = ItemUtil.createItem(Material.GREEN_STAINED_GLASS_PANE, "§a§lUNCOMMON", "uncommon", true, "§7Costs 4 out of " + perkPoints + " perk points.");
-        ItemStack rareButton = ItemUtil.createItem(Material.BLUE_STAINED_GLASS_PANE, "§1§lRARE", "rare", true, "§7Costs 7 out of " + perkPoints + " perk points.");
-        ItemStack legendaryButton = ItemUtil.createItem(Material.ORANGE_STAINED_GLASS_PANE, "§6§lLEGENDARY", "legendary", true, "§7Costs 10 out of " + perkPoints + " perk points.");
-        // Set Locations
-        rollInventory.setItem(10, commonButton);
-        rollInventory.setItem(12, uncommonButton);
-        rollInventory.setItem(14, rareButton);
-        rollInventory.setItem(16, legendaryButton);
-        // Add back arrow at slot 18
-        ItemStack backArrow = new ItemStack(Material.ARROW);
-        ItemMeta meta = backArrow.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§c← Back");
-            backArrow.setItemMeta(meta);
-        }
-        rollInventory.setItem(0, backArrow);
-
-        player.openInventory(rollInventory);
-
+    public GambleManager(Plugin plugin) {
+        this.plugin = plugin;
     }
 
+    public void rollPerk(Player player, int rarity, int cost) {
+        PerkManager pm = PerkManager.getPlayerPerks(player.getUniqueId());
 
+        if (!pm.decreasePerkPoints(cost)) {
+            player.sendMessage("§cYou don't have enough points!");
+            return;
+        }
+
+        // RNG Logic
+        int roll = (int) (Math.random() * 100) + 1;
+        if (roll > 95) rarity += 2;
+        else if (roll > 80) rarity++;
+
+        int finalRarity = Math.min(rarity, 3);
+        List<PerkType> possible = PerkType.getPerksByRarity(finalRarity);
+        PerkType rolledType = possible.get((int) (Math.random() * possible.size()));
+
+        // Process Result
+        pm.addOwnedPerks(rolledType);
+        triggerTotemAnimation(player, rolledType);
+        player.sendMessage("§6§lPERKS §8» §7You obtained: " + rolledType.getItem().getItemMeta().getDisplayName());
+    }
+
+    private void triggerTotemAnimation(Player player, PerkType perkType) {
+        player.closeInventory();
+
+        ItemStack totem = new ItemStack(Material.TOTEM_OF_UNDYING);
+        ItemMeta meta = totem.getItemMeta();
+        int cmd = perkType.getItem().getItemMeta().getCustomModelData();
+
+        if (meta != null) {
+            meta.setCustomModelData(cmd);
+            totem.setItemMeta(meta);
+        }
+
+        ItemStack cache = player.getInventory().getItemInMainHand();
+        int slot = player.getInventory().getHeldItemSlot();
+
+        player.getInventory().setItem(slot, totem);
+        player.playEffect(EntityEffect.TOTEM_RESURRECT);
+        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
+        player.getInventory().setItem(slot, cache);
+
+        // Reopen Menu
+        Bukkit.getScheduler().runTaskLater(plugin, () -> GambleMenu.open(player), 45L);
+    }
 }

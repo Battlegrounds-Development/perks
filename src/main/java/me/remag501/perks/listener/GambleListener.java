@@ -1,180 +1,48 @@
 package me.remag501.perks.listener;
 
-import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.manager.GambleManager;
 import me.remag501.perks.manager.PerkManager;
-import me.remag501.perks.util.ItemUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.EntityEffect;
+import me.remag501.perks.ui.GambleMenu;
+import me.remag501.perks.ui.PerkMenu;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.List;
 
 public class GambleListener implements Listener {
 
-//    private Player player;
-    private Inventory rollInventory;
-//    private PlayerPerks playerPerks;
+    private final GambleManager gambleManager;
 
-    public GambleListener() {
-//        this.player = player;
-//        this.playerPerks = PlayerPerks.getPlayerPerks(player.getUniqueId());
-        rollInventory = Bukkit.createInventory(null, 27, "Roll for Perks");
-    }
-
-    private void loadRollItems(Player player) {
-//        for (int i = 0; i < 27; i++) {
-//            rollInventory.setItem(i, new ItemStack(Material.PAPER)); // Example items for rolling
-//        }
-        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
-        int perkPoints = perkManager.getPerkPoints();
-        ItemStack commonButton = ItemUtil.createItem(Material.WHITE_STAINED_GLASS_PANE, "§f§lCOMMON", "common", true, "§7Costs 2 out of " + perkPoints + " perk points.");
-        ItemStack uncommonButton = ItemUtil.createItem(Material.GREEN_STAINED_GLASS_PANE, "§a§lUNCOMMON", "uncommon", true, "§7Costs 4 out of " + perkPoints + " perk points.");
-        ItemStack rareButton = ItemUtil.createItem(Material.BLUE_STAINED_GLASS_PANE, "§1§lRARE", "rare", true, "§7Costs 7 out of " + perkPoints + " perk points.");
-        ItemStack legendaryButton = ItemUtil.createItem(Material.ORANGE_STAINED_GLASS_PANE, "§6§lLEGENDARY", "legendary", true, "§7Costs 10 out of " + perkPoints + " perk points.");
-        // Set Locations
-        rollInventory.setItem(10, commonButton);
-        rollInventory.setItem(12, uncommonButton);
-        rollInventory.setItem(14, rareButton);
-        rollInventory.setItem(16, legendaryButton);
-        // Add back arrow at slot 18
-        ItemStack backArrow = new ItemStack(Material.ARROW);
-        ItemMeta meta = backArrow.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§c← Back");
-            backArrow.setItemMeta(meta);
-        }
-        rollInventory.setItem(0, backArrow);
-    }
-
-    public void open(Player player) {
-        loadRollItems(player);
-        player.openInventory(rollInventory);
-    }
-
-    private void prevUI(Player player) {
-        PerkMenuListener ui = new PerkMenuListener(PerkManager.getPlayerPerks(player.getUniqueId()), false);
-        Inventory perkMenu = ui.getPerkMenu();
-        player.openInventory(perkMenu);
+    public GambleListener(GambleManager gambleManager) {
+        this.gambleManager = gambleManager;
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().equals("Roll for Perks")) {
-            event.setCancelled(true); // Prevent taking items
+        if (!event.getView().getTitle().equals("Roll for Perks")) return;
 
-            Player player = (Player) event.getWhoClicked();
-            ItemStack clickedItem = event.getCurrentItem();
+        event.setCancelled(true);
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
 
-            if (clickedItem != null) {
-                if (clickedItem.getType() == Material.ARROW) {
-                    prevUI(((Player) event.getWhoClicked()).getPlayer());
-                    return;
-                }
-                switch (clickedItem.getItemMeta().getDisplayName()) {
-                    case "§f§lCOMMON":
-                        rollPerk(player, 0, 2);
-                        break;
-                    case "§a§lUNCOMMON":
-                        rollPerk(player, 1, 4);
-                        break;
-                    case "§1§lRARE":
-                        rollPerk(player, 2, 7);
-                        break;
-                    case "§6§lLEGENDARY":
-                        rollPerk(player, 3, 10);
-                        break;
-                    default:
-                        break;
-                }
-                rollInventory = event.getInventory();
-                loadRollItems(player); // Update UI
-            }
-        }
-    }
+        if (clicked == null || clicked.getType() == Material.AIR) return;
 
-    public void triggerTotemAnimation(Player player, PerkType perkType) {
-        // Close the player's inventory
-        player.closeInventory();
-
-        // Create a custom totem with model data 123
-        ItemStack totem = new ItemStack(Material.TOTEM_OF_UNDYING);
-        ItemMeta meta = totem.getItemMeta();
-
-        // Get cmd from perktype
-        int customModelData = perkType.getItem().getItemMeta().getCustomModelData();
-
-        if (meta != null) {
-//            meta.setDisplayName(ChatColor.GOLD + "Custom Perk Totem");
-            meta.setCustomModelData(customModelData); // Assign custom model data
-
-            // Add lore to the item
-//            List<String> lore = new ArrayList<>();
-//            lore.add(ChatColor.GRAY + "A rare totem infused with perk energy.");
-//            meta.setLore(lore);
-
-            // Store custom NBT data for resource pack mapping
-//            NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "perk_totem");
-//            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, "perk_totem_data");
-
-            totem.setItemMeta(meta);
+        // Navigation
+        if (clicked.getType() == Material.ARROW) {
+            // Here you would call PerkMenu.open(player) once that's refactored
+            PerkMenu.open(player, 0, false);
+            return;
         }
 
-        // Cache the players on hand
-        ItemStack cache = player.getInventory().getItemInMainHand();
-        int slot = player.getInventory().getHeldItemSlot();
-
-        // Add the totem to the player’s inventory
-        player.getInventory().setItem(slot, totem);
-        player.playEffect(EntityEffect.TOTEM_RESURRECT); // Trigger animation
-        player.getInventory().setItem(slot, cache);
-
-
-        // ✅ Play the totem sound
-        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
-
-//        player.sendMessage(ChatColor.GREEN + "You rolled a custom perk!");
-
-        // ✅ Reopen the inventory after 3 seconds
-        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("Perks"), () -> {
-            // Open the perk UI after delay
-            GambleListener rollUI = new GambleListener();
-            rollUI.open(player);
-        }, 45L); // 60 ticks = 3 seconds
-    }
-
-
-
-
-    private boolean rollPerk(Player player, int rarity, int cost) {
-        // Charge player perks, if it fails then it won't roll
-        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
-        if (!perkManager.decreasePerkPoints(cost))
-            return false; // Not enough points
-        // Determine whether player rolls higher rarity
-        int firstRoll = (int) (Math.random() * 100) + 1;
-        if (firstRoll > 95)
-            rarity += 2;
-        else if (firstRoll > 80)
-            rarity++;
-        rarity = (rarity < 4) ? rarity : 3; // Floor rarity to 3
-        // Find the possible perks
-        List<PerkType> possiblePerks = PerkType.getPerksByRarity(rarity);
-        // Roll random perk and add to user
-        int randomIndex = (int) (Math.random() * possiblePerks.size());
-        PerkType perkType = possiblePerks.get(randomIndex);
-        // Animation for rolling perk
-        triggerTotemAnimation(player, perkType);
-        // Add perk to player
-        perkManager.addOwnedPerks(perkType);
-        player.sendMessage("§6§lPERKS §8» §7You obtained the perk: " + perkType.getItem().getItemMeta().getDisplayName());
-        return true;
+        // Gamble Logic
+        String name = clicked.getItemMeta().getDisplayName();
+        switch (name) {
+            case "§f§lCOMMON" -> gambleManager.rollPerk(player, 0, 2);
+            case "§a§lUNCOMMON" -> gambleManager.rollPerk(player, 1, 4);
+            case "§1§lRARE" -> gambleManager.rollPerk(player, 2, 7);
+            case "§6§lLEGENDARY" -> gambleManager.rollPerk(player, 3, 10);
+        }
     }
 }

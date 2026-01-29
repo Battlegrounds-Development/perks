@@ -25,6 +25,11 @@ public class PerkManager {
         return playersPerks.get(playerUUID);
     }
 
+    private PerkType pendingScrap; // Add this field
+
+    public void setPendingScrap(PerkType type) { this.pendingScrap = type; }
+    public PerkType getPendingScrap() { return pendingScrap; }
+
     public void loadPerks(Player player) {
         String playerID = player.getUniqueId().toString();
         ConfigUtil perkConfig = new ConfigUtil(Bukkit.getPluginManager().getPlugin("Perks"), "perks.yml");

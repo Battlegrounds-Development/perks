@@ -2,6 +2,7 @@ package me.remag501.perks.command;
 
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
+import me.remag501.perks.ui.PerkMenu;
 import me.remag501.perks.util.ItemUtil;
 import me.remag501.perks.listener.PerkMenuListener;
 import org.bukkit.Bukkit;
@@ -204,20 +205,22 @@ public class PerksCommand implements CommandExecutor {
     }
 
     private void openPerkUI(CommandSender sender, boolean hiddenMenu) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("§6§lPERKS §8» §cOnly players can use this command!");
             return;
         }
 
-        Player player = (Player) sender;
-        // Open the inventory for the player
+        // 1. Ensure the Player's PerkManager exists
         PerkManager perks = PerkManager.getPlayerPerks(player.getUniqueId());
         if (perks == null) {
-            perks = new PerkManager(player.getUniqueId());
+            // Depending on your architecture, you might want a Manager call here
+            // e.g., PerkManager.loadPlayer(player.getUniqueId());
+            new PerkManager(player.getUniqueId());
         }
-        PerkMenuListener ui = new PerkMenuListener(PerkManager.getPlayerPerks(player.getUniqueId()), hiddenMenu);
-        Inventory perkMenu = ui.getPerkMenu();
-        player.openInventory(perkMenu);
+
+        // 2. Simply call the static open method.
+        // We start at page 0 by default.
+        PerkMenu.open(player, 0, hiddenMenu);
     }
 
     public PerksCommand(Plugin plugin) {
