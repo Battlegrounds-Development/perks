@@ -25,44 +25,44 @@ public final class Perks extends JavaPlugin {
         // Plugin startup logic
         getServer().getLogger().info("Perks has started up!");
         // Create managers for plugin
-        GambleManager gambleManager = new GambleManager(this);
-        // Register listeners for Perks UIs
-        getServer().getPluginManager().registerEvents(new PerkMenuListener(), this);
-        getServer().getPluginManager().registerEvents(new GambleListener(gambleManager), this);
-        getServer().getPluginManager().registerEvents(new PerkChangeListener(), this);
-        getServer().getPluginManager().registerEvents(new ScrapListener(), this);
-
-        // Add commands to the plugin
-        getCommand("perks").setExecutor(new PerksCommand(this));
-        getCommand("perks").setTabCompleter(new PerksCompleter(this));
-
-        // Enable worlds for the plugin
-        PerkChangeListener.dropWorlds.add("sahara");
-        PerkChangeListener.dropWorlds.add("icycaverns");
-        PerkChangeListener.dropWorlds.add("kuroko");
-//        PerkChangeListener.disabledWorlds.add("musicland");
-//        PerkChangeListener.disabledWorlds.add("thundra");
-//        PerkChangeListener.disabledWorlds.add("test");
-        PerkChangeListener.disabledWorlds.add("spawn");
-        PerkChangeListener.disabledWorlds.add("dungeonhub");
-        PerkChangeListener.disabledWorlds.add("honeyclicker");
-//        // Enable listerners for perks
-        for (PerkType perkType: PerkType.values()) {
-            getServer().getPluginManager().registerEvents((Listener) perkType.getPerk(), this);
-        }
-
-        this.perks = this;
+//        GambleManager gambleManager = new GambleManager(this);
+//        // Register listeners for Perks UIs
+//        getServer().getPluginManager().registerEvents(new PerkMenuListener(), this);
+//        getServer().getPluginManager().registerEvents(new GambleListener(gambleManager), this);
+//        getServer().getPluginManager().registerEvents(new PerkChangeListener(), this);
+//        getServer().getPluginManager().registerEvents(new ScrapListener(), this);
+//
+//        // Add commands to the plugin
+//        getCommand("perks").setExecutor(new PerksCommand(this));
+//        getCommand("perks").setTabCompleter(new PerksCompleter(this));
+//
+//        // Enable worlds for the plugin
+//        PerkChangeListener.dropWorlds.add("sahara");
+//        PerkChangeListener.dropWorlds.add("icycaverns");
+//        PerkChangeListener.dropWorlds.add("kuroko");
+////        PerkChangeListener.disabledWorlds.add("musicland");
+////        PerkChangeListener.disabledWorlds.add("thundra");
+////        PerkChangeListener.disabledWorlds.add("test");
+//        PerkChangeListener.disabledWorlds.add("spawn");
+//        PerkChangeListener.disabledWorlds.add("dungeonhub");
+//        PerkChangeListener.disabledWorlds.add("honeyclicker");
+////        // Enable listerners for perks
+//        for (PerkType perkType: PerkType.values()) {
+//            getServer().getPluginManager().registerEvents((Listener) perkType.getPerk(), this);
+//        }
+//
+//        this.perks = this;
     }
 
     @Override
     public void onDisable() {
         // Disable all perks enabled for every player
-        PerkManager.savePerks();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            for (Perk perk : PerkManager.getPlayerPerks(player.getUniqueId()).getEquippedPerks()) {
-                perk.onDisable();
-            }
-        }
+//        PerkManager.savePerks();
+//        for (Player player : Bukkit.getOnlinePlayers()) {
+//            for (Perk perk : PerkManager.getPlayerPerks(player.getUniqueId()).getEquippedPerks()) {
+//                perk.onDisable();
+//            }
+//        }
     }
 
     public static Plugin getPlugin() {
