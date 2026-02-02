@@ -1,54 +1,51 @@
-package me.remag501.perks.perk.impl;
-
-import me.remag501.perks.perk.Perk;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
-
-public class Flash extends Perk {
-
-    private BukkitTask weaknessTask;
-
-    public Flash(ItemStack perkItem) {
-        super(perkItem);
-    }
-
-    @Override
-    public void onEnable() {
-        // Ensure only one instance per player is active
-        Player player = Bukkit.getPlayer(this.player);
-
-        // Apply Speed I effect when the perk is enabled
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0)); // Speed I
-
-        // Schedule a repeating task that applies Weakness every 2 minutes (2400 ticks)
-        weaknessTask = Bukkit.getScheduler().runTaskTimer(
-                player.getServer().getPluginManager().getPlugin("Perks"),
-                () -> applyWeakness(player),
-                2400L, 2400L // Runs every 2 minutes (2400 ticks = 120 seconds)
-        );
-    }
-
-    @Override
-    public void onDisable() {
-        Player player = Bukkit.getPlayer(this.player);
-
-        // Remove Speed and cancel the weakness task when the perk is disabled
-        player.removePotionEffect(PotionEffectType.SPEED);
-
-        if (weaknessTask != null) {
-            weaknessTask.cancel();
-        }
-    }
-
-    // Method to apply Weakness for 4 seconds (80 ticks)
-    private void applyWeakness(Player player) {
-        if (getPerk(player.getUniqueId()) != null) { // Ensure the perk is still active
-            player.sendMessage("§c§l(!) §cYou feel weak from running too fast!");
-            player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0)); // Weakness I for 4 seconds
-        }
-    }
-}
+//package me.remag501.perks.perk.impl;
+//
+//import me.remag501.perks.perk.Perk;
+//import me.remag501.perks.perk.PerkType;
+//import me.remag501.perks.manager.PerkManager;
+//import me.remag501.perks.model.PerkProfile;
+//import org.bukkit.Bukkit;
+//import org.bukkit.entity.Player;
+//import org.bukkit.potion.PotionEffect;
+//import org.bukkit.potion.PotionEffectType;
+//import org.bukkit.scheduler.BukkitTask;
+//
+//import java.util.Map;
+//import java.util.UUID;
+//import java.util.concurrent.ConcurrentHashMap;
+//
+//public class Flash extends Perk {
+//
+//    private final Map<UUID, BukkitTask> weaknessTasks = new ConcurrentHashMap<>();
+//
+//    public Flash() {
+//        super(null);
+//    }
+//
+//    @Override
+//    public void onEnable(Player player, int stars) {
+//        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0));
+//
+//        BukkitTask task = Bukkit.getScheduler().runTaskTimer(
+//                Bukkit.getPluginManager().getPlugin("Perks"),
+//                () -> applyWeakness(player),
+//                2400L, 2400L
+//        );
+//        weaknessTasks.put(player.getUniqueId(), task);
+//    }
+//
+//    @Override
+//    public void onDisable(Player player) {
+//        player.removePotionEffect(PotionEffectType.SPEED);
+//        BukkitTask task = weaknessTasks.remove(player.getUniqueId());
+//        if (task != null) task.cancel();
+//    }
+//
+//    private void applyWeakness(Player player) {
+//        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+//        if (profile != null && profile.isEquipped(PerkType.FLASH)) {
+//            player.sendMessage("§c§l(!) §cYou feel weak from running too fast!");
+//            player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0));
+//        }
+//    }
+//}
