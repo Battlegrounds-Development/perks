@@ -1,4 +1,4 @@
-package me.remag501.perks.model;
+package me.remag501.perks.registry;
 
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
@@ -9,7 +9,6 @@ import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.checkerframework.checker.units.qual.K;
 
 import java.util.HashMap;
 import java.util.Map;

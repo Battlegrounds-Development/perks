@@ -17,22 +17,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static me.remag501.perks.util.WorldUtil.*;
+
 public class GlobalPerkListener implements Listener {
 
-    public final static List<String> dropWorlds = new ArrayList<>();
-    public final static List<String> disabledWorlds = new ArrayList<>();
-
-    public final static String BUNKER_PREFIX = "bunker";
-
-    public GlobalPerkListener() {
-
-    }
 
     private void checkAllowedWorld(Player player) {
         String newWorld = player.getWorld().getName().toLowerCase();
 
         // Check if the world allows perks
-        if (disabledWorlds.contains(newWorld) || newWorld.startsWith(BUNKER_PREFIX)) {
+        if (DISABLED_WORLDS.contains(newWorld) || newWorld.startsWith(BUNKER_PREFIX)) {
             // Disable player's perks
             disablePlayerPerks(player);
         } else {
@@ -48,7 +42,7 @@ public class GlobalPerkListener implements Listener {
 
         // Convert perk cards into player perks
         String worldName = player.getWorld().getName().toLowerCase();
-        if (disabledWorlds.contains(worldName) || worldName.startsWith(BUNKER_PREFIX)) {
+        if (DISABLED_WORLDS.contains(worldName) || worldName.startsWith(BUNKER_PREFIX)) {
             PlayerInventory inventory = player.getInventory();
             List<PerkType> collectedPerks = ItemUtil.itemsToPerks(inventory); // Get perks, and removes perk cards
 
@@ -79,12 +73,12 @@ public class GlobalPerkListener implements Listener {
         Player player = event.getEntity();
         String worldName = player.getWorld().getName();
 
-        if (!dropWorlds.contains(worldName)) {
+        if (!DROP_WORLDS.contains(worldName)) {
             // Player is not in a drop perk world so they keep it
             return;
         }
 
-        if (!disabledWorlds.contains(worldName)) {
+        if (!DISABLED_WORLDS.contains(worldName)) {
             // Player died in region where they lose perk
             PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
             Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();

@@ -1,11 +1,10 @@
 package me.remag501.perks.perk.impl;
 
 import me.remag501.perks.manager.PerkManager;
-import me.remag501.perks.model.PerkRegistry;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.model.PerkProfile;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;

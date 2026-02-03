@@ -4,13 +4,16 @@ import me.remag501.perks.command.PerksCommand;
 import me.remag501.perks.listener.GlobalPerkListener;
 import me.remag501.perks.listener.PerkMenuListener;
 import me.remag501.perks.manager.PerkManager;
-import me.remag501.perks.model.PerkRegistry;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
+
+import static me.remag501.perks.util.WorldUtil.DISABLED_WORLDS;
+import static me.remag501.perks.util.WorldUtil.DROP_WORLDS;
 
 public class Perks extends JavaPlugin {
 
@@ -70,14 +73,14 @@ public class Perks extends JavaPlugin {
         List<String> disabledWorlds = config.getStringList("disabled-worlds");
 
         if (dropWorlds != null) {
-            GlobalPerkListener.dropWorlds.clear();
-            GlobalPerkListener.dropWorlds.addAll(dropWorlds);
+            DROP_WORLDS.clear();
+            DROP_WORLDS.addAll(dropWorlds);
             getLogger().info("Loaded " + dropWorlds.size() + " drop worlds");
         }
 
         if (disabledWorlds != null) {
-            GlobalPerkListener.disabledWorlds.clear();
-            GlobalPerkListener.disabledWorlds.addAll(disabledWorlds);
+            DISABLED_WORLDS.clear();
+            DISABLED_WORLDS.addAll(disabledWorlds);
             getLogger().info("Loaded " + disabledWorlds.size() + " disabled worlds");
         }
 

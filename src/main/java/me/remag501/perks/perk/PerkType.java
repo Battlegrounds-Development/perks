@@ -1,7 +1,6 @@
 package me.remag501.perks.perk;
 
-import me.remag501.perks.model.PerkRegistry;
-import org.bukkit.Material;
+import me.remag501.perks.registry.PerkRegistry;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;

@@ -8,8 +8,8 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static me.remag501.perks.listener.GlobalPerkListener.BUNKER_PREFIX;
-import static me.remag501.perks.listener.GlobalPerkListener.disabledWorlds;
+import static me.remag501.perks.util.WorldUtil.BUNKER_PREFIX;
+import static me.remag501.perks.util.WorldUtil.DISABLED_WORLDS;
 
 /**
  * Simplified PerkProfile - no PerkInstance dependency.
@@ -341,7 +341,7 @@ public class PerkProfile {
         if (player == null) return false;
 
         String worldName = player.getWorld().getName();
-        return !disabledWorlds.contains(worldName) && !worldName.startsWith(BUNKER_PREFIX);
+        return !DISABLED_WORLDS.contains(worldName) && !worldName.startsWith(BUNKER_PREFIX);
     }
 
 }
