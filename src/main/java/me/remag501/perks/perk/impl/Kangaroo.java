@@ -1,116 +1,151 @@
 package me.remag501.perks.perk.impl;
 
+import me.remag501.perks.manager.PerkManager;
+import me.remag501.perks.model.PerkRegistry;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.model.PerkProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Kangaroo perk - allows double jumping with a cooldown.
+ * This perk needs cooldowns, so it manages them internally.
+ */
 public class Kangaroo extends Perk {
 
-    private static final long COOLDOWN_TIME = 30 * 1000; // 30 seconds in milliseconds
-//    private final Map<UUID, Long> cooldowns = new HashMap<>();
-    private long cooldowns;
+    private static final long COOLDOWN_TIME = 30 * 1000; // 30 seconds
 
-    public Kangaroo(ItemStack perkItem, List<List<PerkType>> requirements) {
-        super(perkItem, requirements);
+    // This perk needs cooldowns, so it stores them here
+    private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
+
+    public Kangaroo(String id, PerkType type) {
+        super(id, type);
     }
 
     @Override
-    public void onEnable() {
+    public void onEnable(Player player, int stars) {
+        // Enable flight for double jump detection
+        if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
+            player.setAllowFlight(true);
+        }
     }
 
     @Override
-    public void onDisable() {
-        Player player = Bukkit.getPlayer(this.player);
+    public void onDisable(Player player) {
+        // Disable flight when perk is removed
         if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
             player.setFlying(false);
             player.setAllowFlight(false);
         }
     }
 
-    /**
-     * Handles resetting flight capability when the player lands on the ground.
-     */
+    @Override
+    public void cleanup(UUID playerUUID) {
+        // Clean up cooldown data when player leaves or unequips
+        cooldowns.remove(playerUUID);
+    }
+
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Player eventPlayer = event.getPlayer();
-        if (getPerk(eventPlayer.getUniqueId()) == null) return;
+        Player player = event.getPlayer();
 
-        if (eventPlayer.isOnGround() && !hasCooldown(eventPlayer)) {
-            eventPlayer.setAllowFlight(true); // Allow flight while on the ground
+        if (!isPlayerUsingPerk(player)) {
+            return;
+        }
+
+        // Re-enable flight when player lands
+        if (player.isOnGround() && !isOnCooldown(player.getUniqueId())) {
+            if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
+                player.setAllowFlight(true);
+            }
         }
     }
 
-    /**
-     * Handles the double-jump mechanic and cooldown application.
-     */
     @EventHandler
     public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
-        Player eventPlayer = event.getPlayer();
-        if (getPerk(eventPlayer.getUniqueId()) == null) return;
+        Player player = event.getPlayer();
 
-        if (!eventPlayer.isOnGround() && !hasCooldown(eventPlayer)) {
-            if (eventPlayer.getGameMode() == GameMode.SURVIVAL || eventPlayer.getGameMode() == GameMode.ADVENTURE) {
-                eventPlayer.setFlying(false);
-                eventPlayer.setAllowFlight(false);
+        if (!isPlayerUsingPerk(player)) {
+            return;
+        }
+
+        // Only process in survival/adventure mode
+        if (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE) {
+            return;
+        }
+
+        // Cancel the event to prevent actual flight
+        event.setCancelled(true);
+
+        // Check if player is airborne and can double jump
+        if (!player.isOnGround()) {
+            if (isOnCooldown(player.getUniqueId())) {
+                player.sendMessage("§c§l(!) §cDouble jump is on cooldown!");
+                return;
             }
 
-            Vector jumpVelocity = eventPlayer.getVelocity();
-            jumpVelocity.normalize();
-            jumpVelocity.multiply(1.5); // Adjust forward velocity
-            jumpVelocity.setY(1.0); // Adjust upward velocity
-            eventPlayer.setVelocity(jumpVelocity);
-
-            eventPlayer.sendMessage("§a§l(!) §aYou used your double jump!");
-            playDoubleJumpParticles(eventPlayer);
-            startCooldown(eventPlayer);
-        } else if (hasCooldown(eventPlayer)) {
-            eventPlayer.sendMessage("§c§l(!) §cDouble jump is on cooldown! Wait a bit longer.");
-        }
-
-        if (eventPlayer.getGameMode() == GameMode.SURVIVAL || eventPlayer.getGameMode() == GameMode.ADVENTURE) {
-            event.setCancelled(true); // Prevent default flight behavior
+            performDoubleJump(player);
         }
     }
 
-    /**
-     * Plays a particle effect to signify double jump.
-     */
-    private void playDoubleJumpParticles(Player player) {
-        player.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, player.getLocation(), 20, 0.5, 0.5, 0.5, 0.1);
-    }
+    private void performDoubleJump(Player player) {
+        UUID uuid = player.getUniqueId();
 
-    /**
-     * Checks if the player is on cooldown.
-     */
-    private boolean hasCooldown(Player player) {
-        if (getPerk(player.getUniqueId()) != null)
-            return (System.currentTimeMillis() - cooldowns < COOLDOWN_TIME);
-        return false;
-    }
+        // Disable flight temporarily
+        player.setFlying(false);
+        player.setAllowFlight(false);
 
-    /**
-     * Starts the cooldown for the player.
-     */
-    private void startCooldown(Player player) {
-//        cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
-        cooldowns = System.currentTimeMillis();
+        // Calculate jump velocity
+        Vector jumpVelocity = player.getVelocity();
+        jumpVelocity.normalize();
+        jumpVelocity.multiply(1.5); // Forward velocity
+        jumpVelocity.setY(1.0); // Upward velocity
+        player.setVelocity(jumpVelocity);
+
+        // Visual and audio feedback
+        player.sendMessage("§a§l(!) §aYou used your double jump!");
+        player.getWorld().spawnParticle(
+                Particle.EXPLOSION_LARGE,
+                player.getLocation(),
+                20, 0.5, 0.5, 0.5, 0.1
+        );
+
+        // Set cooldown
+        cooldowns.put(uuid, System.currentTimeMillis());
+
+        // Schedule cooldown expiry notification
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (getPerk(player.getUniqueId()) == null) return;
-                player.sendMessage("§a§l(!) §aDouble jump is ready to use again!");
+                if (isPlayerUsingPerk(player)) {
+                    player.sendMessage("§a§l(!) §aDouble jump is ready!");
+                }
             }
-        }.runTaskLater(Bukkit.getPluginManager().getPlugin("Perks"), 600L); // 600 ticks = 30 seconds
+        }.runTaskLater(PerkRegistry.getInstance().getPlugin(), 600L); // 30 seconds
+    }
+
+    private boolean isOnCooldown(UUID uuid) {
+        Long lastUsed = cooldowns.get(uuid);
+        if (lastUsed == null) {
+            return false;
+        }
+        return (System.currentTimeMillis() - lastUsed) < COOLDOWN_TIME;
+    }
+
+    private boolean isPlayerUsingPerk(Player player) {
+        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        return profile.isEquipped(getType());
     }
 }

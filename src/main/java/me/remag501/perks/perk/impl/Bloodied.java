@@ -1,150 +1,261 @@
-//package me.remag501.perks.perk.impl;
-//
-//import me.remag501.perks.perk.Perk;
-//import org.bukkit.Bukkit;
-//import org.bukkit.entity.Player;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.entity.EntityDamageEvent;
-//import org.bukkit.event.entity.EntityPotionEffectEvent;
-//import org.bukkit.event.entity.EntityRegainHealthEvent;
-//import org.bukkit.inventory.ItemStack;
-//import org.bukkit.potion.PotionEffect;
-//import org.bukkit.potion.PotionEffectType;
-//import org.bukkit.scheduler.BukkitTask;
-//
-//import java.util.UUID;
-//
-//public class Bloodied extends Perk {
-//
-//    private double healthThreshold; // Varies by stars acquired
-//    private int amplifier;
-//    private BukkitTask healthCheckTask;
-//    private boolean isBloodied;
-//    private int duration;
-//    private int kit_amplifier;
-//
-//    public Bloodied(ItemStack perkItem, boolean starPerk) {
-//        super(perkItem, starPerk);
-//    }
-//
-//    @Override
-//    public void onEnable() {
-//        Player player = Bukkit.getPlayer(this.player);
-//
-//        // Schedule a repeating task to check the player's health periodically
-//        healthCheckTask = Bukkit.getScheduler().runTaskTimer(
-//                player.getServer().getPluginManager().getPlugin("Perks"),
-//                () -> checkHealthAndApplyEffect(player),
-//                0L, 200L // Runs every 10 seconds
-//        );
-//
-//        isBloodied = false;
-//        duration = 0;
-//        kit_amplifier = 0;
-//        switch(super.getStars()) {
-//            case 1:
-//                healthThreshold = 0.2;
-//                amplifier = 0;
-//                break;
-//            case 2:
-//                healthThreshold = 0.3;
-//                amplifier = 0;
-//                break;
-//            case 3:
-//                healthThreshold = 0.4;
-//                amplifier = 0;
-//                break;
-//
-//        }
-//    }
-//
-//    @Override
-//    public void onDisable() {
-//        Player player = Bukkit.getPlayer(this.player);
-//        if (healthCheckTask != null) {
-//            healthCheckTask.cancel();
-//        }
-//        PotionEffectType potion = PotionEffectType.INCREASE_DAMAGE;
-//
-//        if (player.isOnline() && player.hasPotionEffect(potion)
-//                && player.getPotionEffect(potion).getAmplifier() == amplifier
-//                && player.getPotionEffect(potion).getDuration() > 500) {
-//            player.removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
-//        }
-//
-//    }
-//
-//    private void checkHealthAndApplyEffect(Player player) {
-//        double currentHealth = player.getHealth();
-//        double maxHealth = player.getMaxHealth();
-//
-//        if (currentHealth > 0 && currentHealth / maxHealth <= healthThreshold) {
-//            if (!isBloodied) {
-//                PotionEffect effect = player.getPotionEffect(PotionEffectType.INCREASE_DAMAGE);
-//                duration = 0;
-//
-//                if (effect != null) {
-//                    if (effect.getAmplifier() > amplifier)
-//                        return; // Don't apply bloodied effects if the user already has strength
-//                    duration = effect.getDuration();
-//                    kit_amplifier = effect.getAmplifier();
-//                }
-//
-//                isBloodied = true;
-//                player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, Integer.MAX_VALUE, amplifier)); // Strength I
-//                player.sendMessage("You feel the strength of bloodied rage!");
-//            }
-//        } else {
-//            if (isBloodied) {
-//                isBloodied = false;
-//                PotionEffectType potion = PotionEffectType.INCREASE_DAMAGE;
-////                player.sendMessage(kit_amplifier + " " + duration);
-//                if (player.getPotionEffect(potion).getAmplifier() == amplifier && player.getPotionEffect(potion).getDuration() > 500) {
-//                    player.removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
-//                    player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, kit_amplifier));
-//                    duration = 0;
-//                }
-//
-//                player.sendMessage("Your strength fades as you heal.");
-//            }
-//        }
-//    }
-//
-//    // Event Handlers
-//    @EventHandler
-//    public void onPlayerDamage(EntityDamageEvent event) {
-//        if (!(event.getEntity() instanceof Player player)) {
-//            return;
-//        }
-//        UUID uuid = player.getUniqueId();
-//        Bloodied perk = (Bloodied) getPerk(uuid);
-//        if (perk != null) {
-//            perk.checkHealthAndApplyEffect(player);
-//        }
-//    }
-//
-//    @EventHandler
-//    public void onPlayerHeal(EntityRegainHealthEvent event) {
-//        if (!(event.getEntity() instanceof Player player)) {
-//            return;
-//        }
-//        UUID uuid = player.getUniqueId();
-//        Bloodied perk = (Bloodied) getPerk(uuid);
-//        if (perk != null) {
-//            perk.checkHealthAndApplyEffect(player);
-//        }
-//    }
-//
-//    @EventHandler
-//    public void onPlayerLoseEffect(EntityPotionEffectEvent event) {
-//        if (!(event.getEntity() instanceof Player player))
-//            return;
-//
-//        // Doesnt make sense, since they can gain regen and effect healing
-//        UUID uuid = player.getUniqueId();
-//        Bloodied perk = (Bloodied) getPerk(uuid);
-//        if (perk != null) {
-//            perk.checkHealthAndApplyEffect(player);
-//        }
-//    }
-//}
+package me.remag501.perks.perk.impl;
+
+import me.remag501.perks.manager.PerkManager;
+import me.remag501.perks.perk.Perk;
+import me.remag501.perks.model.PerkRegistry;
+import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.model.PerkProfile;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Bloodied perk - Grants strength when health drops below threshold.
+ * Threshold increases with stars: 20%/30%/40%
+ */
+public class Bloodied extends Perk {
+
+    // Track per-player state
+    private final Map<UUID, PlayerBloodiedState> playerStates = new ConcurrentHashMap<>();
+    private final Map<UUID, BukkitTask> healthCheckTasks = new ConcurrentHashMap<>();
+
+    public Bloodied(String id, PerkType type) {
+        super(id, type);
+    }
+
+    @Override
+    public void onEnable(Player player, int stars) {
+        UUID uuid = player.getUniqueId();
+
+        // Initialize player state
+        PlayerBloodiedState state = new PlayerBloodiedState(stars);
+        playerStates.put(uuid, state);
+
+        // Start periodic health check
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(
+                PerkRegistry.getInstance().getPlugin(),
+                () -> checkHealthAndApplyEffect(player),
+                0L,
+                200L // Check every 10 seconds
+        );
+        healthCheckTasks.put(uuid, task);
+
+        player.sendMessage("§6§l(!) §6Bloodied activated! Threshold: " + (int)(state.healthThreshold * 100) + "%");
+    }
+
+    @Override
+    public void onDisable(Player player) {
+        UUID uuid = player.getUniqueId();
+
+        // Cancel health check task
+        BukkitTask task = healthCheckTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+
+        // Remove bloodied effect if active
+        PlayerBloodiedState state = playerStates.get(uuid);
+        if (state != null && state.isBloodied && player.isOnline()) {
+            removeBloodiedEffect(player, state);
+        }
+
+        // Don't remove state yet - cleanup() will handle it
+    }
+
+    @Override
+    public void cleanup(UUID playerUUID) {
+        // Clean up all player-specific data
+        BukkitTask task = healthCheckTasks.remove(playerUUID);
+        if (task != null) {
+            task.cancel();
+        }
+        playerStates.remove(playerUUID);
+    }
+
+    /**
+     * Check player's health and apply/remove bloodied effect as needed.
+     */
+    private void checkHealthAndApplyEffect(Player player) {
+        if (!player.isOnline()) {
+            return;
+        }
+
+        UUID uuid = player.getUniqueId();
+        PlayerBloodiedState state = playerStates.get(uuid);
+        if (state == null) {
+            return;
+        }
+
+        // Check if still equipped
+        PerkProfile profile = PerkManager.getInstance().getProfile(uuid);
+        if (!profile.isEquipped(getType())) {
+            return;
+        }
+
+        double currentHealth = player.getHealth();
+        double maxHealth = player.getMaxHealth();
+        double healthPercent = currentHealth / maxHealth;
+
+        if (currentHealth > 0 && healthPercent <= state.healthThreshold) {
+            // Health is below threshold - apply bloodied
+            if (!state.isBloodied) {
+                applyBloodiedEffect(player, state);
+            }
+        } else {
+            // Health is above threshold - remove bloodied
+            if (state.isBloodied) {
+                removeBloodiedEffect(player, state);
+            }
+        }
+    }
+
+    /**
+     * Apply the bloodied strength effect.
+     */
+    private void applyBloodiedEffect(Player player, PlayerBloodiedState state) {
+        PotionEffect existingEffect = player.getPotionEffect(PotionEffectType.INCREASE_DAMAGE);
+
+        // Save existing strength effect (from kits, etc.)
+        if (existingEffect != null) {
+            // Don't apply if they already have stronger strength
+            if (existingEffect.getAmplifier() > state.amplifier) {
+                return;
+            }
+            state.savedDuration = existingEffect.getDuration();
+            state.savedAmplifier = existingEffect.getAmplifier();
+        }
+
+        // Apply bloodied strength
+        state.isBloodied = true;
+        player.addPotionEffect(new PotionEffect(
+                PotionEffectType.INCREASE_DAMAGE,
+                Integer.MAX_VALUE,
+                state.amplifier,
+                false,
+                false
+        ));
+
+        player.sendMessage("§c§l(!) §cYou feel the strength of bloodied rage!");
+    }
+
+    /**
+     * Remove the bloodied strength effect.
+     */
+    private void removeBloodiedEffect(Player player, PlayerBloodiedState state) {
+        state.isBloodied = false;
+
+        PotionEffect currentEffect = player.getPotionEffect(PotionEffectType.INCREASE_DAMAGE);
+
+        // Only remove if it's our bloodied effect
+        if (currentEffect != null &&
+                currentEffect.getAmplifier() == state.amplifier &&
+                currentEffect.getDuration() > 500) {
+
+            player.removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
+
+            // Restore previous strength effect if there was one
+            if (state.savedDuration > 0) {
+                player.addPotionEffect(new PotionEffect(
+                        PotionEffectType.INCREASE_DAMAGE,
+                        state.savedDuration,
+                        state.savedAmplifier,
+                        false,
+                        false
+                ));
+            }
+        }
+
+        // Reset saved effect
+        state.savedDuration = 0;
+        state.savedAmplifier = 0;
+
+        player.sendMessage("§7Your strength fades as you heal.");
+    }
+
+    // ==================== EVENT HANDLERS ====================
+
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        // Check health immediately when damaged
+        Bukkit.getScheduler().runTask(
+                PerkRegistry.getInstance().getPlugin(),
+                () -> checkHealthAndApplyEffect(player)
+        );
+    }
+
+    @EventHandler
+    public void onPlayerHeal(EntityRegainHealthEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        // Check health immediately when healed
+        Bukkit.getScheduler().runTask(
+                PerkRegistry.getInstance().getPlugin(),
+                () -> checkHealthAndApplyEffect(player)
+        );
+    }
+
+    @EventHandler
+    public void onPlayerLoseEffect(EntityPotionEffectEvent event) {
+        if (!(event.getEntity() instanceof Player player)) {
+            return;
+        }
+
+        // Recheck health when effects change
+        Bukkit.getScheduler().runTask(
+                PerkRegistry.getInstance().getPlugin(),
+                () -> checkHealthAndApplyEffect(player)
+        );
+    }
+
+    // ==================== INNER CLASS ====================
+
+    /**
+     * Stores per-player bloodied state.
+     */
+    private static class PlayerBloodiedState {
+        final double healthThreshold;
+        final int amplifier;
+        boolean isBloodied;
+        int savedDuration;
+        int savedAmplifier;
+
+        PlayerBloodiedState(int stars) {
+            this.amplifier = 0; // Strength I
+            this.isBloodied = false;
+            this.savedDuration = 0;
+            this.savedAmplifier = 0;
+
+            // Set threshold based on stars
+            switch (stars) {
+                case 1:
+                    this.healthThreshold = 0.2; // 20%
+                    break;
+                case 2:
+                    this.healthThreshold = 0.3; // 30%
+                    break;
+                case 3:
+                    this.healthThreshold = 0.4; // 40%
+                    break;
+                default:
+                    this.healthThreshold = 0.2;
+                    break;
+            }
+        }
+    }
+}

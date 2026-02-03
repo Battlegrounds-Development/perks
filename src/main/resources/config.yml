@@ -1,0 +1,59 @@
+# Perks Plugin Configuration
+# ===========================
+
+# Worlds where perks are disabled
+# Players cannot use perks in these worlds
+# Worlds starting with "bunker" prefix are also automatically disabled
+disabled-worlds:
+  - world_nether
+  - world_the_end
+  - lobby
+  # Add more worlds here
+
+# Worlds where players drop perks on death
+# Players will lose a random equipped perk when they die in these worlds
+drop-worlds:
+  - world
+  - survival_world
+  # Add more worlds here
+
+# Plugin settings
+settings:
+  # Maximum perks a player can equip at once (default: 5)
+  max-equipped-perks: 5
+
+  # Maximum quantity of the same perk a player can own (default: 3)
+  max-perk-quantity: 3
+
+  # Whether to save player data automatically on logout (default: true)
+  auto-save-on-quit: true
+
+  # Auto-save interval in minutes (0 to disable, default: 5)
+  auto-save-interval: 5
+
+# Perk point rewards
+rewards:
+  # Perk points given for scrapping perks by rarity
+  scrap-points:
+    common: 1
+    uncommon: 2
+    rare: 3
+    legendary: 5
+
+  # Perk points given for killing a player (0 to disable)
+  kill-reward: 0
+
+  # Perk points given per hour of playtime (0 to disable)
+  playtime-reward: 0
+
+# Messages (use & for color codes)
+messages:
+  prefix: "&6&lPERKS &8» &7"
+  no-permission: "You don't have permission to use this command."
+  perk-equipped: "You have equipped the perk {perk}"
+  perk-unequipped: "You have unequipped the perk {perk}"
+  perk-obtained: "You have obtained {perk}"
+  perk-scrapped: "You scrapped {perk} for {points} perk points!"
+  max-perks: "You can only equip 5 perks at once!"
+  requirements-not-met: "You don't have the required perks equipped!"
+  perk-not-owned: "You don't own this perk!"

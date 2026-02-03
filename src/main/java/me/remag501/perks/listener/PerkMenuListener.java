@@ -2,9 +2,10 @@ package me.remag501.perks.listener;
 
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
-import me.remag501.perks.ui.GambleMenu;
+import me.remag501.perks.model.PerkProfile;
+//import me.remag501.perks.ui.GambleMenu;
 import me.remag501.perks.ui.PerkMenu;
-import me.remag501.perks.ui.ScrapMenu;
+//import me.remag501.perks.ui.ScrapMenu;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -26,7 +27,7 @@ public class PerkMenuListener implements Listener {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getType() == Material.AIR) return;
 
-        PerkManager perks = PerkManager.getPlayerPerks(player.getUniqueId());
+        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
 
         // 1. Extract current page from the 'Next' or 'Back' button lore
         ItemStack pager = event.getInventory().getItem(53);
@@ -40,7 +41,8 @@ public class PerkMenuListener implements Listener {
         }
 
         if (name.equals("§6§lOBTAIN PERKS")) {
-            GambleMenu.open(player);
+            // GambleMenu.open(player);
+            player.sendMessage("§cGamble menu not yet implemented!");
             return;
         } else if (name.equals("§a§lNEXT")) {
             PerkMenu.open(player, currentPage + 1, ItemUtil.hiddenItem(clicked));
@@ -56,20 +58,25 @@ public class PerkMenuListener implements Listener {
                 boolean isHidden = ItemUtil.hiddenItem(clicked);
 
                 if (event.getClick() == ClickType.LEFT) {
-                    if (perks.addEquippedPerk(type)) {
+                    // Left click: Equip perk
+                    if (profile.equipPerk(type, player)) {
                         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 10, 2);
                     } else {
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 10, 1);
                     }
                 } else if (event.getClick() == ClickType.RIGHT) {
-                    if (perks.removeEquippedPerk(type)) {
+                    // Right click: Unequip perk (or open scrap menu if not equipped)
+                    if (profile.unequipPerk(type, player)) {
                         player.playSound(player, Sound.UI_BUTTON_CLICK, 10, 2);
                     } else {
-                        PerkManager.getPlayerPerks(player.getUniqueId()).setPendingScrap(type);
-                        ScrapMenu.open(player);
-                        return; // Don't refresh PerkMenu yet, we're in ScrapMenu
+                        // Perk not equipped, open scrap menu
+                        profile.setPendingScrap(type);
+                        // ScrapMenu.open(player);
+                        player.sendMessage("§cScrap menu not yet implemented!");
+                        return; // Don't refresh PerkMenu yet
                     }
                 }
+
                 // Refresh the current UI
                 PerkMenu.open(player, currentPage, isHidden);
                 break;

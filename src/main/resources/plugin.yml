@@ -1,18 +1,79 @@
 name: Perks
-version: 1.0
+version: 2.0.0
 main: me.remag501.perks.Perks
-api-version: 1.19
+api-version: 1.21
+author: remag501
+description: A comprehensive perk system for Minecraft servers
 
 commands:
   perks:
-    description: Gives a player perk(s).
-    usage: /perks <subcommand>
-    # No permission here allows the code to handle the logic
+    description: Open the perks menu or manage perks
+    usage: |
+      /<command> - Open perk menu
+      /<command> add <perk> - Add a perk to yourself
+      /<command> add <player> <perk> - Add a perk to a player
+      /<command> addpoints <amount> - Add perk points to yourself
+      /<command> addpoints <player> <amount> - Add perk points to a player
+      /<command> addcard <perk> - Give yourself a perk card
+      /<command> addcard <player> <perk> - Give a player a perk card
+      /<command> remove <perk> - Remove a perk from yourself
+      /<command> remove <player> <perk> - Remove a perk from a player
+      /<command> reload - Reload the plugin configuration
+      /<command> save - Save all player perk data
+      /<command> hiddenui - Open the perk menu with hidden perks visible
+    aliases: [perk]
+    permission: perks.user
+    permission-message: You don't have permission to use this command!
 
 permissions:
-  perks.admin:
-    description: Allows giving perks.
+  perks.*:
+    description: Gives access to all perk commands
+    children:
+      perks.user: true
+      perks.admin: true
     default: op
+
   perks.user:
-    description: Allows viewing and equipping perks.
+    description: Allows using the basic perk menu
     default: true
+
+  perks.admin:
+    description: Allows managing perks and using admin commands
+    default: op
+    children:
+      perks.user: true
+      perks.add: true
+      perks.remove: true
+      perks.reload: true
+      perks.save: true
+      perks.addpoints: true
+      perks.addcard: true
+      perks.hiddenui: true
+
+  perks.add:
+    description: Allows adding perks to players
+    default: op
+
+  perks.remove:
+    description: Allows removing perks from players
+    default: op
+
+  perks.reload:
+    description: Allows reloading the plugin configuration
+    default: op
+
+  perks.save:
+    description: Allows manually saving perk data
+    default: op
+
+  perks.addpoints:
+    description: Allows adding perk points to players
+    default: op
+
+  perks.addcard:
+    description: Allows giving perk cards to players
+    default: op
+
+  perks.hiddenui:
+    description: Allows viewing hidden perks in the UI
+    default: op

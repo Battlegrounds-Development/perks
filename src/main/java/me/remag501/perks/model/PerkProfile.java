@@ -1,27 +1,277 @@
 package me.remag501.perks.model;
 
+import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.util.ItemUtil;
+import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+/**
+ * Simplified PerkProfile - no PerkInstance dependency.
+ * Stars are stored here, cooldowns are in each Perk.
+ */
 public class PerkProfile {
-    private final UUID uuid;
-    private int perkPoints;
-    // Map of Perk -> How many "cards" they own (1-3)
-    private final Map<PerkType, Integer> ownedCount = new HashMap<>();
-    // Map of Perk -> How many stars are currently active (1-3)
-    private final Map<PerkType, Integer> equippedStars = new HashMap<>();
 
-    public PerkProfile(UUID uuid) {
-        this.uuid = uuid;
+    private final UUID playerUUID;
+    private final Map<PerkType, Integer> ownedPerks; // PerkType -> quantity
+    private final Map<PerkType, Integer> equippedPerks; // PerkType -> stars (1-3)
+    private int perkPoints;
+    private PerkType pendingScrap;
+
+    public PerkProfile(UUID playerUUID) {
+        this.playerUUID = playerUUID;
+        this.ownedPerks = new HashMap<>();
+        this.equippedPerks = new HashMap<>();
+        this.perkPoints = 0;
     }
 
-    // Getters and helper methods for counts
-    public int getStars(PerkType type) { return equippedStars.getOrDefault(type, 0); }
-    public int getOwned(PerkType type) { return ownedCount.getOrDefault(type, 0); }
-    public boolean isEquipped(PerkType type) { return equippedStars.containsKey(type); }
+    public UUID getPlayerUUID() {
+        return playerUUID;
+    }
 
-    // Logic for adding/removing purely affects the numbers here
+    // ==================== OWNED PERKS ====================
+
+    public boolean addOwnedPerk(PerkType type) {
+        int currentQuantity = ownedPerks.getOrDefault(type, 0);
+        if (currentQuantity >= 3) {
+            return false;
+        }
+        ownedPerks.put(type, currentQuantity + 1);
+        return true;
+    }
+
+    public boolean removeOwnedPerk(PerkType type) {
+        int currentQuantity = ownedPerks.getOrDefault(type, 0);
+        if (currentQuantity <= 0) {
+            return false;
+        }
+
+        if (currentQuantity == 1) {
+            ownedPerks.remove(type);
+        } else {
+            ownedPerks.put(type, currentQuantity - 1);
+        }
+        return true;
+    }
+
+    public int getOwnedQuantity(PerkType type) {
+        return ownedPerks.getOrDefault(type, 0);
+    }
+
+    public boolean ownsPerk(PerkType type) {
+        return ownedPerks.containsKey(type);
+    }
+
+    public List<PerkType> getOwnedPerksList() {
+        List<PerkType> list = new ArrayList<>();
+        for (Map.Entry<PerkType, Integer> entry : ownedPerks.entrySet()) {
+            for (int i = 0; i < entry.getValue(); i++) {
+                list.add(entry.getKey());
+            }
+        }
+        return list;
+    }
+
+    public Map<PerkType, Integer> getOwnedPerks() {
+        return new HashMap<>(ownedPerks);
+    }
+
+    // ==================== EQUIPPED PERKS ====================
+
+    public boolean equipPerk(PerkType type, Player player) {
+        // Check if at max equipped perks
+        if (equippedPerks.size() >= 5 && !equippedPerks.containsKey(type)) {
+            return false;
+        }
+
+        // Check if player owns the perk
+        if (!ownsPerk(type)) {
+            return false;
+        }
+
+        // Check requirements
+        if (!hasRequirements(type)) {
+            return false;
+        }
+
+        Integer currentStars = equippedPerks.get(type);
+
+        // Handle star perks
+        if (currentStars != null && type.isStarPerk() && currentStars < 3) {
+            int newStars = currentStars + 1;
+            equippedPerks.put(type, newStars);
+
+            // Re-enable with new star count
+            Perk perk = type.getPerk();
+            perk.onDisable(player);
+            perk.onEnable(player, newStars);
+            return true;
+        }
+
+        // Already equipped and not a star perk
+        if (currentStars != null) {
+            return false;
+        }
+
+        // Equip new perk
+        equippedPerks.put(type, 1); // Start with 1 star
+        Perk perk = type.getPerk();
+        perk.onEnable(player, 1);
+
+        return true;
+    }
+
+    public boolean unequipPerk(PerkType type, Player player) {
+        Integer stars = equippedPerks.get(type);
+        if (stars == null) {
+            return false;
+        }
+
+        // Handle star perks
+        if (type.isStarPerk() && stars > 1) {
+            int newStars = stars - 1;
+            equippedPerks.put(type, newStars);
+
+            // Re-enable with new star count
+            Perk perk = type.getPerk();
+            perk.onDisable(player);
+            perk.onEnable(player, newStars);
+            return true;
+        }
+
+        // Remove the perk
+        equippedPerks.remove(type);
+        Perk perk = type.getPerk();
+        perk.onDisable(player);
+        perk.cleanup(playerUUID); // Clean up cooldowns, etc.
+
+        // Check for dependent perks and remove them
+        removeDependentPerks(type, player);
+
+        return true;
+    }
+
+    public boolean isEquipped(PerkType type) {
+        return equippedPerks.containsKey(type);
+    }
+
+    public int getEquippedStars(PerkType type) {
+        return equippedPerks.getOrDefault(type, 0);
+    }
+
+    public List<PerkType> getEquippedPerksList() {
+        return new ArrayList<>(equippedPerks.keySet());
+    }
+
+    public Map<PerkType, Integer> getEquippedPerks() {
+        return new HashMap<>(equippedPerks);
+    }
+
+    // ==================== REQUIREMENTS ====================
+
+    private boolean hasRequirements(PerkType type) {
+        List<List<PerkType>> requirements = type.getRequirements();
+        if (requirements == null || requirements.isEmpty()) {
+            return true;
+        }
+
+        Set<PerkType> equippedSet = new HashSet<>(equippedPerks.keySet());
+
+        for (List<PerkType> requirementGroup : requirements) {
+            boolean hasOneFromGroup = false;
+            for (PerkType required : requirementGroup) {
+                if (equippedSet.contains(required)) {
+                    equippedSet.remove(required);
+                    hasOneFromGroup = true;
+                    break;
+                }
+            }
+            if (!hasOneFromGroup) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void removeDependentPerks(PerkType removedType, Player player) {
+        List<PerkType> toRemove = new ArrayList<>();
+
+        for (PerkType equipped : equippedPerks.keySet()) {
+            if (!hasRequirements(equipped)) {
+                toRemove.add(equipped);
+            }
+        }
+
+        for (PerkType type : toRemove) {
+            if (type.isStarPerk()) {
+                equippedPerks.put(type, 1); // Reset to 1 star
+            }
+            equippedPerks.remove(type);
+
+            Perk perk = type.getPerk();
+            perk.onDisable(player);
+            perk.cleanup(playerUUID);
+        }
+    }
+
+    // ==================== PERK POINTS ====================
+
+    public int getPerkPoints() {
+        return perkPoints;
+    }
+
+    public void addPerkPoints(int amount) {
+        this.perkPoints += amount;
+    }
+
+    public boolean spendPerkPoints(int amount) {
+        if (perkPoints >= amount) {
+            perkPoints -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    // ==================== SCRAP ====================
+
+    public int scrapPerk(PerkType type) {
+        if (!removeOwnedPerk(type)) {
+            return 0;
+        }
+
+        int pointsGained = calculateScrapValue(type);
+        addPerkPoints(pointsGained);
+        return pointsGained;
+    }
+
+    private int calculateScrapValue(PerkType type) {
+        int rarity = ItemUtil.getRarity(type);
+        switch (rarity) {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 3;
+            case 3: return 5;
+            default: return 0;
+        }
+    }
+
+    public void setPendingScrap(PerkType type) {
+        this.pendingScrap = type;
+    }
+
+    public PerkType getPendingScrap() {
+        return pendingScrap;
+    }
+
+    // ==================== UTILITY ====================
+
+    public void clearEquippedPerks(Player player) {
+        for (PerkType type : equippedPerks.keySet()) {
+            Perk perk = type.getPerk();
+            perk.onDisable(player);
+            perk.cleanup(playerUUID);
+        }
+        equippedPerks.clear();
+    }
 }

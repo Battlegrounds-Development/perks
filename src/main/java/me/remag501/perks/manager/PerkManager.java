@@ -1,364 +1,248 @@
 package me.remag501.perks.manager;
 
-import me.remag501.perks.perk.Perk;
+import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.util.ConfigUtil;
-import me.remag501.perks.util.ItemUtil;
-import me.remag501.perks.listener.PerkChangeListener;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 
+/**
+ * Singleton manager for all player perk profiles.
+ * Clean implementation without PerkInstance - works directly with PerkProfile.
+ */
 public class PerkManager {
 
-    private static HashMap<UUID, PerkManager> playersPerks = new HashMap<>();
-    private UUID playerUUID;
-//    private Set<PlayerPerkInstance> equippedPerks;
-//    private List<Perk> ownedPerks;
-    private Map<PerkType, Perk> equippedPerks;
-    private Map<PerkType, Perk> ownedPerks;
-    private int perkPoints;
+    private static PerkManager instance;
 
-    public static PerkManager getPlayerPerks(UUID playerUUID) {
-        return playersPerks.get(playerUUID);
+    private final Map<UUID, PerkProfile> profiles;
+    private final Plugin plugin;
+
+    private PerkManager(Plugin plugin) {
+        this.plugin = plugin;
+        this.profiles = new HashMap<>();
     }
 
-    private PerkType pendingScrap; // Add this field
-
-    public void setPendingScrap(PerkType type) { this.pendingScrap = type; }
-    public PerkType getPendingScrap() { return pendingScrap; }
-
-    public void loadPerks(Player player) {
-        String playerID = player.getUniqueId().toString();
-        ConfigUtil perkConfig = new ConfigUtil(Bukkit.getPluginManager().getPlugin("Perks"), "perks.yml");
-        List<String> equippedPerks = perkConfig.getConfig().getStringList(playerID + "_equipped");
-        List<String> ownedPerks = perkConfig.getConfig().getStringList(playerID + "_owned");
-        String perkPointString = ownedPerks.remove(ownedPerks.size() - 1); // Pops last item O(1) for perk points
-        this.perkPoints = Integer.parseInt(perkPointString);
-        // Convert to Perk ArrayList and set this update this instance to existing perks
-        for (String perk: ownedPerks) // Owned Perks have to be called first
-            this.addOwnedPerks(PerkType.valueOf(perk));
-        for (String perk: equippedPerks)
-            this.addEquippedPerk(PerkType.valueOf(perk));
-    }
-
-    public static void savePerks() {
-        ConfigUtil perkConfigUtil = new ConfigUtil(Bukkit.getPluginManager().getPlugin("Perks"), "perks.yml");
-        FileConfiguration perkConfig = perkConfigUtil.getConfig();
-        // Iterate through set of perks for each player
-        for (UUID playerID: playersPerks.keySet()) {
-            PerkManager playerPerk = playersPerks.get(playerID);
-            String playerIDString = playerID.toString();
-            // Convert to list to set in the config file
-            List<String> save = new ArrayList<>();
-            for (Perk perk: playerPerk.getEquippedPerks()) {
-                if (perk.isStarPerk()) {
-                    for (int i = 0; i < perk.getStars(); i++)
-                        save.add(ItemUtil.getPerkID(perk.getItem()));
-                } else
-                    save.add(ItemUtil.getPerkID(perk.getItem()));
-            }
-            perkConfig.set(playerIDString + "_equipped", save);
-            // Add owned perks to config
-            save = new ArrayList<>();
-            for (Perk perk: playerPerk.getOwnedPerks())
-                save.add(ItemUtil.getPerkID(perk.getItem()));
-            save.add(playerPerk.perkPoints + ""); // Save perk points under owned
-            perkConfig.set(playerIDString + "_owned", save);
+    /**
+     * Initialize the manager singleton.
+     */
+    public static void initialize(Plugin plugin) {
+        if (instance != null) {
+            throw new IllegalStateException("PerkManager already initialized");
         }
-        // Save the config to the file
+        instance = new PerkManager(plugin);
+    }
+
+    /**
+     * Get the singleton instance.
+     */
+    public static PerkManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("PerkManager not initialized");
+        }
+        return instance;
+    }
+
+    /**
+     * Get or create a player's perk profile.
+     */
+    public PerkProfile getProfile(UUID playerUUID) {
+        return profiles.computeIfAbsent(playerUUID, PerkProfile::new);
+    }
+
+    /**
+     * Remove a player's profile (e.g., on logout).
+     */
+    public void removeProfile(UUID playerUUID) {
+        profiles.remove(playerUUID);
+    }
+
+    /**
+     * Check if a profile exists.
+     */
+    public boolean hasProfile(UUID playerUUID) {
+        return profiles.containsKey(playerUUID);
+    }
+
+    /**
+     * Load a player's perks from config.
+     */
+    public void loadPerks(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        PerkProfile profile = getProfile(playerUUID);
+
+        String playerID = playerUUID.toString();
+        ConfigUtil perkConfig = new ConfigUtil(plugin, "perks.yml");
+        FileConfiguration config = perkConfig.getConfig();
+
+        List<String> equippedList = config.getStringList(playerID + "_equipped");
+        List<String> ownedList = config.getStringList(playerID + "_owned");
+
+        if (!ownedList.isEmpty()) {
+            // Last item is perk points
+            String perkPointString = ownedList.remove(ownedList.size() - 1);
+            try {
+                int points = Integer.parseInt(perkPointString);
+                profile.addPerkPoints(points);
+            } catch (NumberFormatException e) {
+                plugin.getLogger().warning("Invalid perk points for player " + playerUUID);
+            }
+        }
+
+        // Load owned perks first
+        for (String perkId : ownedList) {
+            try {
+                PerkType type = PerkType.valueOf(perkId);
+                profile.addOwnedPerk(type);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid perk type in owned perks: " + perkId);
+            }
+        }
+
+        // Load equipped perks (with star counting)
+        Map<PerkType, Integer> starCounts = new HashMap<>();
+        for (String perkId : equippedList) {
+            try {
+                PerkType type = PerkType.valueOf(perkId);
+                starCounts.put(type, starCounts.getOrDefault(type, 0) + 1);
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Invalid perk type in equipped perks: " + perkId);
+            }
+        }
+
+        // Equip perks with correct star counts
+        for (Map.Entry<PerkType, Integer> entry : starCounts.entrySet()) {
+            PerkType type = entry.getKey();
+            int stars = entry.getValue();
+
+            // Equip the perk
+            profile.equipPerk(type, player);
+
+            // If it's a star perk, equip additional times for stars
+            if (type.isStarPerk() && stars > 1) {
+                for (int i = 1; i < stars && i < 3; i++) {
+                    profile.equipPerk(type, player);
+                }
+            }
+        }
+    }
+
+    /**
+     * Save all player perks to config.
+     */
+    public void saveAllPerks() {
+        ConfigUtil perkConfigUtil = new ConfigUtil(plugin, "perks.yml");
+        FileConfiguration config = perkConfigUtil.getConfig();
+
+        for (Map.Entry<UUID, PerkProfile> entry : profiles.entrySet()) {
+            UUID playerUUID = entry.getKey();
+            PerkProfile profile = entry.getValue();
+            saveProfileToConfig(config, playerUUID, profile);
+        }
+
         perkConfigUtil.save();
     }
 
-    // Return list for ease of UI handling, requires optimization in future
-    public List<Perk> getEquippedPerks() {
-        return new ArrayList<>(equippedPerks.values()); // Keys and values are same amount, values easier since they are perk object already
-    }
-
-    // Return list for ease of UI handling, requires optimization in future
-    public List<Perk> getOwnedPerks() {
-        ArrayList<Perk> rv = new ArrayList<Perk>();
-        for (Perk perkInstance: ownedPerks.values()) { // Values contain the quantities
-            for (int i = 0; i < perkInstance.getQuantity(); i++)
-                rv.add(perkInstance); // Should work with clone of object due to having same ItemStack pointer
-        }
-        return rv;
-    }
-
-    // Should only be on player join
-    public PerkManager(UUID playerUUID) {
-        equippedPerks = new HashMap<PerkType, Perk>();
-        ownedPerks = new HashMap<PerkType, Perk>();
-        playersPerks.put(playerUUID, this);
-        this.playerUUID = playerUUID;
-        if (playerUUID != null)
-            loadPerks(Bukkit.getPlayer(playerUUID));
-    }
-
-    public boolean removeEquippedPerk(PerkType perkType) {
-        Perk perk = equippedPerks.get(perkType); // Check if perk is equipped
-        if (perk == null) return false;
-
-        // If star perk with more than 1 star, just remove one star
-        if (perk.getStars() > 1) {
-            if (!perk.decreaseStar())
-                return false; // Increase star fails
-            // Re instantiate the perk with new stars
-        } else {
-            // Disable the perk before removing it
-            equippedPerks.remove(perkType);
+    /**
+     * Save a specific player's perks.
+     */
+    public void savePlayerPerks(UUID playerUUID) {
+        PerkProfile profile = profiles.get(playerUUID);
+        if (profile == null) {
+            return;
         }
 
-        // Check if another perk depends on this one, now that this perk is removed
-//        Set<PerkType> equippedSet = equippedPerks.keySet();
-//        for (PerkType equippedPerk: equippedSet) {
-//            List<List<PerkType>> requirements = equippedPerk.getPerk().getRequirements();
-//            if (requirements != null) {
-//                List<PerkType> equippedPerkTypes = new ArrayList<>(equippedPerks.keySet());
-//                for (List<PerkType> requirementList: requirements) {
-//                    boolean foundPerk = false;
-//                    for (PerkType requirement: requirementList) {
-//                        if (equippedPerkTypes.contains(requirement)) {
-//                            equippedPerkTypes.remove(requirement); // Prevent perk from filling two requirements
-//                            foundPerk = true;
-//                            break;
-//                        }
-//                    }
-//                    if (!foundPerk) {
-//                        Perk equippedPerkInstance = equippedPerks.get(equippedPerk);
-//                        // Check if star perk and reset stars
-//                        if (equippedPerkInstance.isStarPerk())
-//                            equippedPerkInstance.setStar(1);
-//                        // Disable the perk if the player is in world
-//                        boolean inWorld = false;
-//                        for (String world: PerkChangeListener.enabledWorlds) {
-//                            if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-//                                inWorld = true;
-//                                break;
-//                            }
-//                        }
-//                        if (!inWorld) {
-//                            equippedPerks.remove(equippedPerk); // Player does not have required perk
-//                            break;
-//                        }
-//                        equippedPerkInstance.onDisable();
-//                        equippedPerks.remove(equippedPerk); // Player does not have required perk
-//                        break; // Check if more than one perk depend on removed perk
-//                    }
-//                }
-//            }
-//        }
+        ConfigUtil perkConfigUtil = new ConfigUtil(plugin, "perks.yml");
+        FileConfiguration config = perkConfigUtil.getConfig();
 
-        Iterator<PerkType> iterator = equippedPerks.keySet().iterator();
-        while (iterator.hasNext()) {
-            PerkType equippedPerk = iterator.next();
-            List<List<PerkType>> requirements = equippedPerk.getPerk().getRequirements();
+        saveProfileToConfig(config, playerUUID, profile);
+        perkConfigUtil.save();
+    }
 
-            if (requirements != null) {
-                List<PerkType> equippedPerkTypes = new ArrayList<>(equippedPerks.keySet());
+    /**
+     * Helper method to save a profile to config.
+     */
+    private void saveProfileToConfig(FileConfiguration config, UUID playerUUID, PerkProfile profile) {
+        String playerID = playerUUID.toString();
 
-                for (List<PerkType> requirementList : requirements) {
-                    boolean foundPerk = false;
+        // Save equipped perks (with stars)
+        List<String> equippedList = new ArrayList<>();
+        Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
 
-                    for (PerkType requirement : requirementList) {
-                        if (equippedPerkTypes.contains(requirement)) {
-                            equippedPerkTypes.remove(requirement); // Prevent perk from filling two requirements
-                            foundPerk = true;
-                            break;
-                        }
-                    }
+        for (Map.Entry<PerkType, Integer> entry : equippedPerks.entrySet()) {
+            PerkType type = entry.getKey();
+            int stars = entry.getValue();
 
-                    if (!foundPerk) {
-                        Perk equippedPerkInstance = equippedPerks.get(equippedPerk);
-
-                        // Check if star perk and reset stars
-                        if (equippedPerkInstance.isStarPerk())
-                            equippedPerkInstance.setStar(1);
-
-                        // Disable the perk if the player is in world
-                        boolean inWorld = true;
-                        for (String world : PerkChangeListener.disabledWorlds) {
-                            if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-                                inWorld = false;
-                                break;
-                            }
-                        }
-
-                        if (!inWorld) {
-                            iterator.remove(); // Safe removal using iterator
-                            break;
-                        }
-
-                        equippedPerkInstance.deactivatePlayer();
-                        equippedPerkInstance.onDisable();
-                        iterator.remove(); // Safe removal using iterator
-                        break; // Check if more than one perk depends on removed perk
-                    }
+            if (type.isStarPerk()) {
+                // Add one entry per star
+                for (int i = 0; i < stars; i++) {
+                    equippedList.add(type.getId());
                 }
+            } else {
+                equippedList.add(type.getId());
+            }
+        }
+        config.set(playerID + "_equipped", equippedList);
+
+        // Save owned perks
+        List<String> ownedList = new ArrayList<>();
+        Map<PerkType, Integer> ownedPerks = profile.getOwnedPerks();
+
+        for (Map.Entry<PerkType, Integer> entry : ownedPerks.entrySet()) {
+            PerkType type = entry.getKey();
+            int quantity = entry.getValue();
+
+            // Add one entry per quantity
+            for (int i = 0; i < quantity; i++) {
+                ownedList.add(type.getId());
             }
         }
 
-
-
-        // Message the player
-        Player player = Bukkit.getPlayer(playerUUID);
-        player.sendMessage("§6§lPERKS §8» §7You have deequipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
-
-        // Check if they are in the correct world before disabling
-        boolean inWorld = true;
-        for (String world: PerkChangeListener.disabledWorlds) {
-            if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-                inWorld = false;
-                break;
-            }
-        }
-        if (!inWorld)
-            return true;
-        perk.onDisable();
-        perk.deactivatePlayer();
-        if (perk.isStarPerk() == true && perk.getStars() > 1) {
-            perk.onEnable();
-            perk.activatePlayer();
-        }
-        return true;
+        // Add perk points at the end
+        ownedList.add(String.valueOf(profile.getPerkPoints()));
+        config.set(playerID + "_owned", ownedList);
     }
 
-    public boolean addEquippedPerk(PerkType perkType) {
-        Player player = Bukkit.getPlayer(playerUUID);
-        if (equippedPerks.size() >= 5)
-            return false;
-        Perk perkInstance = equippedPerks.get(perkType);
-
-        // Check if perk has requirements equipped
-        List<List<PerkType>> requirements = perkType.getPerk().getRequirements();
-        if (requirements != null) {
-            List<PerkType> equippedPerkTypes = new ArrayList<>(equippedPerks.keySet());
-            for (List<PerkType> requirementList: requirements) {
-                boolean foundPerk = false;
-                for (PerkType requirement: requirementList) {
-                    if (equippedPerkTypes.contains(requirement)) {
-                        equippedPerkTypes.remove(requirement); // Prevent perk from filling two requirements
-                        foundPerk = true;
-                        break;
-                    }
-                }
-                if (!foundPerk)
-                    return foundPerk; // Player does not have required perk
-            }
-        }
-
-        // Check if star perk
-        if (perkInstance != null && perkInstance.isStarPerk() && perkInstance.getStars() < 3) {
-            if (!perkInstance.increaseStar())
-                return false; // Increase star fails
-        }
-
-        // Check if perk is already equipped
-        else if (perkInstance != null)
-            return false;
-
-        // Add perks to set
-        perkInstance = ownedPerks.get(perkType);
-        if (perkInstance == null) return false; // Just in case
-        equippedPerks.put(perkType, perkInstance);
-        player.sendMessage("§6§lPERKS §8» §7You have equipped the perk " + perkType.getItem().getItemMeta().getDisplayName());
-
-        // Only enables if the player is in the correct world
-        boolean inWorld = true;
-        for (String world: PerkChangeListener.disabledWorlds) {
-            if (Bukkit.getPlayer(playerUUID).getWorld().getName().equalsIgnoreCase(world)) {
-                inWorld = false;
-                break;
-            }
-        }
-        if (!inWorld)
-            return true; // Equipped but not enabled
-        perkInstance.onEnable();
-        perkInstance.activatePlayer();
-
-        return true;
+    /**
+     * Handle player joining - load their perks.
+     */
+    public void handlePlayerJoin(Player player) {
+        loadPerks(player);
     }
 
-    public boolean addOwnedPerks(PerkType perkType) {
-        Player player = Bukkit.getPlayer(playerUUID);
-        Perk perkInstance = ownedPerks.get(perkType);
+    /**
+     * Handle player leaving - save and cleanup.
+     */
+    public void handlePlayerQuit(Player player) {
+        UUID playerUUID = player.getUniqueId();
+        PerkProfile profile = profiles.get(playerUUID);
 
-        if (perkInstance != null) { // Perk already owned
-            if (!perkInstance.addCount()) { // Perk deck is full, scrap one to add later
-                int points = scrapPerks(perkType);
-                perkInstance.addCount(); // Add again since scrap removes a perk
-                player.sendMessage("§6§lPERKS §8» §7You do not have enough storage for this perk, so it was automatically converted to " + points + " perk points.");
-                return false;
-            }
-            return true;
+        if (profile != null) {
+            // Disable all equipped perks
+            profile.clearEquippedPerks(player);
 
-        } else {
-            perkInstance = perkType.getPerk().clone();
-            perkInstance.setPlayer(player);
-            ownedPerks.put(perkType, perkInstance);
-            return true;
+            // Save the profile
+            savePlayerPerks(playerUUID);
+
+            // Remove from memory
+            removeProfile(playerUUID);
         }
     }
 
-    public int scrapPerks(PerkType perkType) {
-        removeOwnedPerk(perkType);
-        int perkAdd = 0;
-        switch (ItemUtil.getRarity(perkType)) {
-            case 0:
-                perkAdd = 1;
-                break;
-            case 1:
-                perkAdd = 2;
-                break;
-            case 2:
-                perkAdd = 3;
-                break;
-            case 3:
-                perkAdd = 5;
-                break;
-            default:
-                break;
-        }
-        perkPoints += perkAdd;
-        return perkAdd;
+    /**
+     * Get all loaded profiles (for admin commands, etc.)
+     */
+    public Collection<PerkProfile> getAllProfiles() {
+        return new ArrayList<>(profiles.values());
     }
 
-    public void removeOwnedPerk(PerkType perkType) {
-        // Doesnt need count checker since remove leaves array the same if the value is not found
-        // O(1) complexity
-        if (ownedPerks.get(perkType) == null)
-            return; // No perk found
-        Perk perk = ownedPerks.get(perkType);
-        if (perk.getQuantity() > 1) {
-            perk.lowerCount();
-            if (perk.getStars() > perk.getQuantity())
-                removeEquippedPerk(perkType);
-        }
-        else { // Removes from HashMap and unequips
-            ownedPerks.remove(perkType);
-            removeEquippedPerk(perkType);
-        }
-    }
-
-    public void addPerkPoints(int count) {
-        perkPoints += count;
-    }
-
-    public int getPerkPoints() {
-        return perkPoints;
-    }
-
-    public UUID getPlayerUUID() {
-        return playerUUID;
-    }
-
-    public boolean decreasePerkPoints(int points) {
-        if (perkPoints >= points)
-            perkPoints -= points;
-        else
-            return false;
-        return true;
+    /**
+     * Get the plugin instance.
+     */
+    public Plugin getPlugin() {
+        return plugin;
     }
 }

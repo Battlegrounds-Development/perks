@@ -1,8 +1,8 @@
 package me.remag501.perks.listener;
 
-import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
+import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,30 +15,28 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class PerkChangeListener implements Listener {
+public class GlobalPerkListener implements Listener {
 
     public final static List<String> dropWorlds = new ArrayList<>();
     public final static List<String> disabledWorlds = new ArrayList<>();
 
     private final static String BUNKER_PREFIX = "bunker";
 
-
-    public PerkChangeListener() {
+    public GlobalPerkListener() {
 
     }
 
     private void checkAllowedWorld(Player player) {
         String newWorld = player.getWorld().getName().toLowerCase();
 
-        // Check does not allow the world allows perks
+        // Check if the world allows perks
         if (disabledWorlds.contains(newWorld) || newWorld.startsWith(BUNKER_PREFIX)) {
             // Disable player's perks
-//            player.sendMessage("Perks disabled");
             disablePlayerPerks(player);
         } else {
             // Re-enable player's perks
-//            player.sendMessage("Perks enabled");
             enablePlayerPerks(player);
         }
     }
@@ -46,66 +44,79 @@ public class PerkChangeListener implements Listener {
     @EventHandler
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
-//        player.sendMessage("Perks: reached1");
         checkAllowedWorld(player);
+
         // Convert perk cards into player perks
         String worldName = player.getWorld().getName().toLowerCase();
         if (disabledWorlds.contains(worldName) || worldName.startsWith(BUNKER_PREFIX)) {
             PlayerInventory inventory = player.getInventory();
             List<PerkType> collectedPerks = ItemUtil.itemsToPerks(inventory); // Get perks, and removes perk cards
-            if (collectedPerks.isEmpty())
+
+            if (collectedPerks.isEmpty()) {
                 return; // Player extracted no perks
+            }
+
             // Give perks to player
-            PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
-            for (PerkType perkType: collectedPerks) {
+            PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+            for (PerkType perkType : collectedPerks) {
                 // Create colored string for perk name
                 ItemMeta itemMeta = perkType.getItem().getItemMeta();
                 String firstLine = itemMeta.getLore().get(0);
                 char colorCode = firstLine.charAt(1);
                 String itemName = "§" + colorCode + "§l" + itemMeta.getDisplayName();
+
                 player.sendMessage("§aYou have obtained " + itemName); // Notify player
-                perkManager.addOwnedPerks(perkType);
+                profile.addOwnedPerk(perkType);
             }
         }
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        // Turn off perk
+        // Turn off perks
         disablePlayerPerks(event.getEntity());
-        // Player loses on perk at random
+
         Player player = event.getEntity();
         String worldName = player.getWorld().getName();
 
-        if (!dropWorlds.contains(worldName)) { // Player is not in a drop perk world so they keep it
-
+        if (!dropWorlds.contains(worldName)) {
+            // Player is not in a drop perk world so they keep it
             return;
         }
 
-        if (!disabledWorlds.contains(worldName)) { // Player died in region where they lose perk
-            // Pick a random perk to drop
-            PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
-            List<Perk> equippedPerks = perkManager.getEquippedPerks();
-            if (equippedPerks.size() == 0)
+        if (!disabledWorlds.contains(worldName)) {
+            // Player died in region where they lose perk
+            PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+            Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
+
+            if (equippedPerks.isEmpty()) {
                 return; // Player has no perks equipped, they lose nothing
-            int droppedIndex = (int) (Math.random() * equippedPerks.size());
-            Perk dropped = equippedPerks.get(droppedIndex);
-            // Convert to item and put in itemstack
-            ItemStack perkItem = ItemUtil.getPerkCard(PerkType.getPerkType(dropped));
-            List<ItemStack> drops = event.getDrops();
-            drops.add(perkItem);
-            // Remove perk from equipped perks
-            perkManager.removeOwnedPerk(PerkType.getPerkType(dropped));
-            if (dropped.isStarPerk()) { // Drop all star perks
-                int stars = dropped.getStars();
-                for (int i = 0; i < stars; i++) { // removeOwnedPerks, already takes away a star
-                    player.sendMessage("reached");
-                    perkManager.removeOwnedPerk(PerkType.getPerkType(dropped));
-                    drops.add(perkItem);
-                }
             }
+
+            // Pick a random perk to drop
+            List<PerkType> equippedList = new ArrayList<>(equippedPerks.keySet());
+            int droppedIndex = (int) (Math.random() * equippedList.size());
+            PerkType droppedType = equippedList.get(droppedIndex);
+            int stars = equippedPerks.get(droppedType);
+
+            // Convert to item and put in drops
+            ItemStack perkItem = ItemUtil.getPerkCard(droppedType);
+            List<ItemStack> drops = event.getDrops();
+
+            if (droppedType.isStarPerk()) {
+                // Drop all star perks
+                for (int i = 0; i < stars; i++) {
+                    drops.add(perkItem.clone());
+                    profile.removeOwnedPerk(droppedType);
+                }
+            } else {
+                drops.add(perkItem);
+                profile.removeOwnedPerk(droppedType);
+            }
+
             // Message the player
-            player.sendMessage("§cYou have lost the perk " + perkItem.getItemMeta().getDisplayName());
+            String starInfo = droppedType.isStarPerk() ? " §e" + "★".repeat(stars) : "";
+            player.sendMessage("§cYou have lost the perk " + perkItem.getItemMeta().getDisplayName() + starInfo);
         }
     }
 
@@ -117,38 +128,49 @@ public class PerkChangeListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        // Check if player has perks loaded
         Player player = event.getPlayer();
-        PerkManager perkManager = PerkManager.getPlayerPerks(player.getUniqueId());
-        if (perkManager == null)
-            new PerkManager(((Player) player).getUniqueId());
+
+        // Load player's perks
+        PerkManager.getInstance().handlePlayerJoin(player);
+
         // Check if player can enable their perks
         checkAllowedWorld(player);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        disablePlayerPerks(event.getPlayer());
+        Player player = event.getPlayer();
+
+        // Disable perks first
+        disablePlayerPerks(player);
+
+        // Save and cleanup
+        PerkManager.getInstance().handlePlayerQuit(player);
     }
 
     private void disablePlayerPerks(Player player) {
-//        player.sendMessage("Perks are disabled in this world.");
-        // Loop through the player's active perks and disable them
-        for (Perk perk : getPlayerActivePerks(player)) {
-            perk.onDisable();
+        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
+
+        // Disable each equipped perk
+        for (Map.Entry<PerkType, Integer> entry : equippedPerks.entrySet()) {
+            PerkType type = entry.getKey();
+            int stars = entry.getValue();
+
+            type.getPerk().onDisable(player);
         }
     }
 
     private void enablePlayerPerks(Player player) {
-//        player.sendMessage("Perks are enabled in this world.");
-        // Loop through the player's active perks and enable them
-        for (Perk perk : getPlayerActivePerks(player)) {
-//            player.sendMessage("reached " + perk.getItem().getItemMeta().getDisplayName());
-            perk.onEnable();
-        }
-    }
+        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
 
-    private List<Perk> getPlayerActivePerks(Player player) {
-        return PerkManager.getPlayerPerks(player.getUniqueId()).getEquippedPerks();
+        // Enable each equipped perk with correct star count
+        for (Map.Entry<PerkType, Integer> entry : equippedPerks.entrySet()) {
+            PerkType type = entry.getKey();
+            int stars = entry.getValue();
+
+            type.getPerk().onEnable(player, stars);
+        }
     }
 }

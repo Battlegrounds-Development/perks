@@ -1,6 +1,5 @@
 package me.remag501.perks.util;
 
-import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,12 +18,10 @@ import org.bukkit.profile.PlayerTextures;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ItemUtil {
+
 
     /*
 
@@ -63,11 +60,9 @@ public class ItemUtil {
                 break;
         }
         // Prepend the lores with rarityStr
-//        List<String> loreList = new ArrayList<>(List.of(rarityStr));
-//        loreList.addAll(Arrays.asList(lores));
         ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
         loreList.add(0, rarityStr);
-                ItemStack item = ItemUtil.createItem(type, name, id, false, loreList.toArray(new String[loreList.size()]));
+        ItemStack item = ItemUtil.createItem(type, name, id, false, loreList.toArray(new String[loreList.size()]));
         // Add tag for hidden rarity
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
@@ -105,7 +100,7 @@ public class ItemUtil {
                 meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
-            // Apply meta deta to item
+            // Apply meta data to item
             item.setItemMeta(meta);
         }
         return item;
@@ -154,7 +149,7 @@ public class ItemUtil {
         loreList.replaceAll(s -> "§8• §f" + s);
         loreList.add(0, rarityStr);
         // Make lores same color
-        ItemStack item = ItemUtil.createItem(Material.PAPER, "§e§o" + name, id, cmd,false, loreList.toArray(new String[loreList.size()]));
+        ItemStack item = ItemUtil.createItem(Material.PAPER, "§e§o" + name, id, cmd, false, loreList.toArray(new String[loreList.size()]));
         // Add tag for hidden rarity
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
@@ -167,19 +162,7 @@ public class ItemUtil {
     }
 
     public static int getRarity(PerkType perkType) {
-        switch(perkType.getItem().getItemMeta().getLore().get(0).charAt(1)) {
-            case 'f':
-                return 0;
-            case 'a':
-                return 1;
-            case '1':
-                return 2;
-            case '6':
-                return 3;
-            default:
-                break;
-        }
-        return -1;
+        return perkType.getRarity();
     }
 
     public static ItemStack createPerkSkull(String texture, String name, String id, int rarity, String... lores) {
@@ -210,8 +193,6 @@ public class ItemUtil {
         skullMeta.setLore(new ArrayList<>());
 
         // Set the custom player texture using UUID
-//        PlayerProfile profile = Bukkit.createPlayerProfile(uuid);
-//        skullMeta.setOwnerProfile(profile);
         skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
 
         head.setItemMeta(skullMeta);
@@ -245,7 +226,7 @@ public class ItemUtil {
                 meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
-            // Apply meta deta to item
+            // Apply meta data to item
             item.setItemMeta(meta);
         }
         return item;
@@ -265,16 +246,12 @@ public class ItemUtil {
             char colorCode = firstLine.charAt(1);
             // Update the display name to represent the card
             meta.setDisplayName("§" + colorCode + "§l" + itemMeta.getDisplayName());
-//            meta.setCustomModelData(perkType.get);
-            meta.setCustomModelData(perkType.getItem().getItemMeta().getCustomModelData()); // Super ineffiecnt since nbt data should be stored in perktype
+            meta.setCustomModelData(perkType.getCustomModelData());
+
             // Add lore for clarity
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.RED + "You will obtain this perk when you extract!");
             meta.setLore(lore);
-
-            // Store the perk type in the item's PersistentDataContainer (might already exist from being a clone)
-//            NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
-//            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, item.getType().toString());
 
             perkCard.setItemMeta(meta);
         }
@@ -284,26 +261,21 @@ public class ItemUtil {
 
     public static List<PerkType> itemsToPerks(PlayerInventory inventory) {
         List<PerkType> perkTypes = new ArrayList<>();
-        List<ItemStack> perkCards = new ArrayList<>();
 
         for (ItemStack item : inventory.getContents()) {
             if (item == null) continue;
 
             for (PerkType type : PerkType.values()) {
-                ItemStack perkItem = type.getPerk().getItem();
+                ItemStack perkItem = type.getItem();
                 if (areItemsEqual(item, perkItem)) {
                     for (int i = 0; i < item.getAmount(); i++) {
                         perkTypes.add(type);
-                        inventory.remove(item);
-//                        perkCards.add(item); // Save to remove later
                     }
+                    inventory.remove(item);
                     break;
                 }
             }
         }
-
-//        for (ItemStack item: perkCards) // Remove perk cards from inventory
-//            inventory.remove(item);
 
         return perkTypes;
     }
@@ -341,11 +313,9 @@ public class ItemUtil {
         PersistentDataContainer data2 = meta2.getPersistentDataContainer();
 
         // Check if both items have the custom key in their PersistentDataContainer
-//        Bukkit.getPluginManager().getPlugin("Perks").getLogger().info(data1.get(key, PersistentDataType.STRING) + " " + data2.get(key, PersistentDataType.STRING));
         if (data1.has(key, PersistentDataType.STRING) && data2.has(key, PersistentDataType.STRING)) {
             String id1 = data1.get(key, PersistentDataType.STRING);
             String id2 = data2.get(key, PersistentDataType.STRING);
-//
 
             // Compare the unique IDs
             return id1 != null && id1.equals(id2);
@@ -364,152 +334,174 @@ public class ItemUtil {
         return id.equals("HIDDEN");
     }
 
-    public static void updateCount(ItemStack item, List<Perk> perks) {
-        // Update the item's count based on the number of perks the player has
-        int count = 0;
-        boolean starPerk = false;
-        for (Perk perk : perks) {
-            if (areItemsEqual(item, perk.getItem())) {
-                count++;
-                starPerk = perk.isStarPerk();
-            }
-        }
-        // Check if meta is null
+    // ==================== UPDATED METHODS FOR NEW ARCHITECTURE ====================
+
+    /**
+     * Update the item's count based on owned perks.
+     * NEW: Takes List<PerkType> and the specific type to count.
+     */
+    public static void updateCount(ItemStack item, List<PerkType> ownedPerks, PerkType type) {
+        // Count how many of this specific type the player owns
+        int count = (int) ownedPerks.stream().filter(t -> t == type).count();
+
         ItemMeta meta = item.getItemMeta();
-        if (meta == null)
-            return;
-        // If the count is 0, then make the item a bedrock block
+        if (meta == null) return;
+
+        // If the count is 0, make the item a bedrock block (unavailable)
         if (count == 0) {
             item.setType(Material.BEDROCK);
             // Update meta data identifier
             NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
-            PersistentDataContainer data = meta.getPersistentDataContainer();;
+            PersistentDataContainer data = meta.getPersistentDataContainer();
             data.remove(key);
-//            Bukkit.getPluginManager().getPlugin("Perks").getLogger().info(data.get(key, PersistentDataType.STRING));
-
-        }
-//        else if (starPerk) {
-//            // Update the item's stars
-//            List<String> loreList = meta.getLore();
-//            StringBuilder starStr = new StringBuilder();
-//            for (int i = 0; i < 3; i++) {
-//                if (i <= count-1)
-//                    starStr.append("★");
-//                else
-//                    starStr.append("☆");
-//            }
-//            if (meta.hasEnchants()) // Checks if selected
-//                loreList.add(1, String.valueOf(starStr));
-//            else
-//                loreList.add(0, String.valueOf(starStr));
-//            meta.setLore(loreList);
-//        }
-        else {
-            // Update the item's count based on the number of perks the player has
+        } else {
+            // Update the item's count in lore
             List<String> loreList = meta.getLore();
-            if (meta.hasEnchants()) // Checks if selected
+            if (loreList == null) loreList = new ArrayList<>();
+
+            if (meta.hasEnchants()) { // Checks if selected
                 loreList.add(1, "§7Perks: " + count + "/3");
-            else
+            } else {
                 loreList.add(0, "§7Perks: " + count + "/3");
+            }
             meta.setLore(loreList);
         }
         item.setItemMeta(meta);
     }
 
-    public static void updateStarCount(ItemStack item, List<Perk> equippedPerks) {
-        int stars = 0;
-        for (Perk perk: equippedPerks) {
-            if (perk.getItem().equals(item) && perk.isStarPerk()) {
-                stars = perk.getStars();
-                break;
-            }
+    /**
+     * Update star count display on item.
+     * NEW: Takes PerkType and star count directly.
+     */
+    public static void updateStarCount(ItemStack item, PerkType type, int stars) {
+        if (!type.isStarPerk() || stars == 0) {
+            return; // Not a star perk or not equipped
         }
-        if (stars == 0)
-            return; // Perk is not equipped or a star perk
-        // Get item meta
+
         ItemMeta meta = item.getItemMeta();
-        // Build a star string
+        if (meta == null) return;
+
+        // Build star string
         List<String> loreList = meta.getLore();
+        if (loreList == null) loreList = new ArrayList<>();
+
         StringBuilder starStr = new StringBuilder("§6");
         for (int i = 0; i < 3; i++) {
-            if (i <= stars-1)
+            if (i < stars) {
                 starStr.append("★");
-            else
+            } else {
                 starStr.append("☆");
+            }
         }
-        if (meta.hasEnchants()) // Checks if selected
-            loreList.add(1, String.valueOf(starStr));
-        else
-            loreList.add(0, String.valueOf(starStr));
+
+        if (meta.hasEnchants()) { // Checks if equipped
+            loreList.add(1, starStr.toString());
+        } else {
+            loreList.add(0, starStr.toString());
+        }
+
         meta.setLore(loreList);
         item.setItemMeta(meta);
     }
 
-    public static void updateEquipStatus(ItemStack item, List<Perk> equippedPerks) {
-        // Check if perk is equipped
-        boolean equipped = false;
-        for (Perk perk: equippedPerks){
-            if (areItemsEqual(item, perk.getItem())) {
-                equipped = true;
+    /**
+     * Update equip status display on item.
+     * NEW: Takes Map<PerkType, Integer> for equipped perks.
+     */
+    public static void updateEquipStatus(ItemStack item, Map<PerkType, Integer> equippedPerks) {
+        // Find which PerkType this item represents
+        PerkType itemType = null;
+        for (PerkType type : PerkType.values()) {
+            if (areItemsEqual(item, type.getItem())) {
+                itemType = type;
                 break;
             }
         }
-        // Get the meta of the item
+
+        if (itemType == null) return;
+
         ItemMeta meta = item.getItemMeta();
-        // Enchant the item then add lore to show its equipped
+        if (meta == null) return;
+
+        boolean equipped = equippedPerks.containsKey(itemType);
+
+        // Enchant the item and add lore to show it's equipped
         if (equipped) {
             // Enchant
             meta.addEnchant(Enchantment.LUCK, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+
             // Get previous lore
             List<String> lore = meta.getLore();
-            if (lore == null)
-                lore = new ArrayList<String>();
+            if (lore == null) lore = new ArrayList<>();
+
             lore.add(0, "§c§lEquipped");
             meta.setLore(lore);
         } else {
             meta.removeEnchant(Enchantment.LUCK);
             meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
+
             // Get previous lore
             List<String> lore = meta.getLore();
-            if (lore != null)
-                lore.remove("§4Equipped");
+            if (lore != null) {
+                lore.remove("§c§lEquipped");
+            }
             meta.setLore(lore);
         }
+
         item.setItemMeta(meta);
     }
 
-    public static void updateRequirements(ItemStack item, List<Perk> equippedPerks, PerkType perkType) {
-        List<List<PerkType>> requirements = perkType.getPerk().getRequirements();
-        if (requirements == null)
+    /**
+     * Update requirements display on item.
+     * NEW: Takes Map<PerkType, Integer> for equipped perks.
+     */
+    public static void updateRequirements(ItemStack item, Map<PerkType, Integer> equippedPerks, PerkType perkType) {
+        List<List<PerkType>> requirements = perkType.getRequirements();
+        if (requirements == null || requirements.isEmpty()) {
             return; // Perk has no requirements
+        }
+
         ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+
         List<String> loreList = meta.getLore();
+        if (loreList == null) loreList = new ArrayList<>();
 
         // Build lore for requirements
         loreList.add(""); // Add line break
-//        loreList.add("§fRequirements: ");
-        for (List<PerkType> requirement: requirements) {
+
+        // Create a copy of equipped perks to track which ones we've "used"
+        Set<PerkType> availablePerks = new HashSet<>(equippedPerks.keySet());
+
+        for (List<PerkType> requirementGroup : requirements) {
             StringBuilder requirementString = new StringBuilder();
 
-            // Check if the player has the required perk and build string
-            boolean meetsRequirements = false;
-            for (PerkType perkRequired: requirement) {
-                requirementString.append(perkRequired.getItem().getItemMeta().getDisplayName().replace("§e§o", "")).append(", ");
-                if (equippedPerks.remove(perkRequired.getPerk())) // Prevent double dipping requirements
-                    meetsRequirements = true;
+            // Check if the player has at least one required perk from this group
+            boolean meetsRequirement = false;
+            for (PerkType perkRequired : requirementGroup) {
+                requirementString.append(perkRequired.getDisplayName()).append(", ");
+
+                if (availablePerks.contains(perkRequired)) {
+                    availablePerks.remove(perkRequired); // Prevent double-dipping requirements
+                    meetsRequirement = true;
+                }
             }
 
             // Insert prefix based on whether player meets requirement
-            if (meetsRequirements) {
+            if (meetsRequirement) {
                 loreList.add("§f§aRequirements: ");
                 requirementString.insert(0, "§a + ");
-            }
-            else {
+            } else {
                 loreList.add("§f§cRequirements: ");
                 requirementString.insert(0, "§c - ");
             }
-            requirementString.deleteCharAt(requirementString.length()-2); // Remove second last character, the "," at the end of string
+
+            // Remove the trailing ", "
+            if (requirementString.length() > 2) {
+                requirementString.delete(requirementString.length() - 2, requirementString.length());
+            }
+
             loreList.add(requirementString.toString());
         }
 
@@ -517,5 +509,4 @@ public class ItemUtil {
         meta.setLore(loreList);
         item.setItemMeta(meta);
     }
-
 }
