@@ -51,10 +51,24 @@ public class PerkProfile {
             return false;
         }
 
+        Player player = Bukkit.getPlayer(playerUUID);
+
         if (currentQuantity == 1) {
             ownedPerks.remove(type);
+            equippedPerks.remove(type);
+
+            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+                type.getPerk().onDisable(player);
+            }
         } else {
             ownedPerks.put(type, currentQuantity - 1);
+            if (type.isStarPerk())
+                equippedPerks.put(type, equippedPerks.get(type) - 1);
+
+            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+                type.getPerk().onDisable(player);
+                type.getPerk().onEnable(player, equippedPerks.get(type));
+            }
         }
         return true;
     }
