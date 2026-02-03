@@ -89,7 +89,7 @@ public class Bloodied extends Perk {
 
         // Check if still equipped
         PerkProfile profile = PerkManager.getInstance().getProfile(uuid);
-        if (!profile.isEquipped(getType())) {
+        if (!profile.isActive(getType())) {
             return;
         }
 

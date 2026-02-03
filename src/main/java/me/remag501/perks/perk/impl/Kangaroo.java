@@ -143,6 +143,6 @@ public class Kangaroo extends Perk {
 
     private boolean isPlayerUsingPerk(Player player) {
         PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
-        return profile.isEquipped(getType());
+        return profile.isActive(getType());
     }
 }

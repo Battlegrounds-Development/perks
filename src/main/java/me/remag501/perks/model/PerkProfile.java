@@ -3,6 +3,7 @@ package me.remag501.perks.model;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.util.ItemUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -166,6 +167,14 @@ public class PerkProfile {
         removeDependentPerks(type, player);
 
         return true;
+    }
+
+    public boolean isActive(PerkType type) {
+        Player player = Bukkit.getPlayer(playerUUID);
+        if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))
+            return false;
+
+        return isEquipped(type);
     }
 
     public boolean isEquipped(PerkType type) {

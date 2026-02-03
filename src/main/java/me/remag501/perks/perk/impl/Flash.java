@@ -82,7 +82,7 @@ public class Flash extends Perk {
 
         // Verify player still has perk equipped
         PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
-        if (!profile.isEquipped(getType())) {
+        if (!profile.isActive(getType())) {
             // Perk was unequipped, stop the task
             BukkitTask task = weaknessTasks.remove(player.getUniqueId());
             if (task != null) {
