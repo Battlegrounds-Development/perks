@@ -27,8 +27,8 @@ public class Flash extends Perk {
     // Track weakness application tasks per player
     private final Map<UUID, BukkitTask> weaknessTasks = new ConcurrentHashMap<>();
 
-    public Flash(String id, PerkType type) {
-        super(id, type);
+    public Flash() {
+        super(PerkType.FLASH);
     }
 
     @Override

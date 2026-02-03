@@ -29,8 +29,8 @@ public class Bloodied extends Perk {
     private final Map<UUID, PlayerBloodiedState> playerStates = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> healthCheckTasks = new ConcurrentHashMap<>();
 
-    public Bloodied(String id, PerkType type) {
-        super(id, type);
+    public Bloodied() {
+        super(PerkType.BLOODIED);
     }
 
     @Override

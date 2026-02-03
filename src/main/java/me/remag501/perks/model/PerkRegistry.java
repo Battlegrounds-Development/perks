@@ -9,6 +9,7 @@ import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.units.qual.K;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,15 +49,9 @@ public class PerkRegistry {
 
     private void registerPerks() {
         // Register KANGAROO perk
-        PerkType kangarooType = PerkType.KANGAROO;
-        PerkType bloodiedType = PerkType.BLOODIED;
-        PerkType flashType = PerkType.FLASH;
-        Perk kangarooPerk = new Kangaroo("KANGAROO", kangarooType);
-        Perk bloodiedPerk = new Bloodied("BLOODIED", PerkType.BLOODIED);
-        Perk flashPerk = new Flash("FLASH", PerkType.FLASH);
-        registerPerk(kangarooType, kangarooPerk);
-        registerPerk(bloodiedType, bloodiedPerk);
-        registerPerk(flashType, flashPerk);
+        registerPerk(PerkType.KANGAROO, new Kangaroo());
+        registerPerk(PerkType.BLOODIED, new Bloodied());
+        registerPerk(PerkType.FLASH, new Flash());
     }
 
     private void registerPerk(PerkType type, Perk perk) {

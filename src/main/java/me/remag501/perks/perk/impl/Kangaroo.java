@@ -30,8 +30,8 @@ public class Kangaroo extends Perk {
     // This perk needs cooldowns, so it stores them here
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
-    public Kangaroo(String id, PerkType type) {
-        super(id, type);
+    public Kangaroo() {
+        super(PerkType.KANGAROO);
     }
 
     @Override

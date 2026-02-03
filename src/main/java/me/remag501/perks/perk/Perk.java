@@ -12,16 +12,10 @@ import java.util.UUID;
  */
 public abstract class Perk implements Listener {
 
-    private final String id;
     private final PerkType type;
 
-    protected Perk(String id, PerkType type) {
-        this.id = id;
+    protected Perk(PerkType type) {
         this.type = type;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public PerkType getType() {
@@ -54,11 +48,11 @@ public abstract class Perk implements Listener {
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Perk)) return false;
-        return ((Perk) obj).id.equals(this.id);
+        return ((Perk) obj).type.equals(this.type);
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return type.hashCode();
     }
 }
