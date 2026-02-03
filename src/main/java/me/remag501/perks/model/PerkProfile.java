@@ -99,11 +99,18 @@ public class PerkProfile {
             return false;
         }
 
-        Integer currentStars = equippedPerks.get(type);
+        Integer equippedPerkCount = equippedPerks.get(type);
+        int ownedPerkCount = ownedPerks.get(type);
 
         // Handle star perks
-        if (currentStars != null && type.isStarPerk() && currentStars < 3) {
-            int newStars = currentStars + 1;
+        if (equippedPerkCount != null && type.isStarPerk() && equippedPerkCount < 3) {
+
+            if (equippedPerkCount >= ownedPerkCount) {
+                player.sendMessage("§c§l(!) §7You need more of this perk to unlock more stars!");
+                return false;
+            }
+
+            int newStars = equippedPerkCount + 1;
             equippedPerks.put(type, newStars);
 
             // Re-enable with new star count
@@ -118,7 +125,7 @@ public class PerkProfile {
         }
 
         // Already equipped and not a star perk
-        if (currentStars != null) {
+        if (equippedPerkCount != null) {
             return false;
         }
 
