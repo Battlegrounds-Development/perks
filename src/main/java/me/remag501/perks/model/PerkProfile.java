@@ -7,6 +7,9 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
+import static me.remag501.perks.listener.GlobalPerkListener.BUNKER_PREFIX;
+import static me.remag501.perks.listener.GlobalPerkListener.disabledWorlds;
+
 /**
  * Simplified PerkProfile - no PerkInstance dependency.
  * Stars are stored here, cooldowns are in each Perk.
@@ -104,8 +107,12 @@ public class PerkProfile {
 
             // Re-enable with new star count
             Perk perk = type.getPerk();
-            perk.onDisable(player);
-            perk.onEnable(player, newStars);
+
+            if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+                perk.onDisable(player);
+                perk.onEnable(player, newStars);
+            }
+
             return true;
         }
 
@@ -117,7 +124,10 @@ public class PerkProfile {
         // Equip new perk
         equippedPerks.put(type, 1); // Start with 1 star
         Perk perk = type.getPerk();
-        perk.onEnable(player, 1);
+
+        if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+            perk.onEnable(player, 1);
+        }
 
         return true;
     }
@@ -135,16 +145,22 @@ public class PerkProfile {
 
             // Re-enable with new star count
             Perk perk = type.getPerk();
-            perk.onDisable(player);
-            perk.onEnable(player, newStars);
+
+            if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+                perk.onDisable(player);
+                perk.onEnable(player, newStars);
+            }
+
             return true;
         }
 
         // Remove the perk
         equippedPerks.remove(type);
         Perk perk = type.getPerk();
-        perk.onDisable(player);
-        perk.cleanup(playerUUID); // Clean up cooldowns, etc.
+
+        if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+            perk.onDisable(player);
+        }
 
         // Check for dependent perks and remove them
         removeDependentPerks(type, player);
@@ -210,8 +226,11 @@ public class PerkProfile {
             equippedPerks.remove(type);
 
             Perk perk = type.getPerk();
-            perk.onDisable(player);
-            perk.cleanup(playerUUID);
+
+            if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+                perk.onDisable(player);
+            }
+
         }
     }
 
@@ -269,9 +288,12 @@ public class PerkProfile {
     public void clearEquippedPerks(Player player) {
         for (PerkType type : equippedPerks.keySet()) {
             Perk perk = type.getPerk();
-            perk.onDisable(player);
-            perk.cleanup(playerUUID);
+
+            if (disabledWorlds.contains(player.getWorld()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+                perk.onDisable(player);
+            }
         }
         equippedPerks.clear();
     }
+
 }

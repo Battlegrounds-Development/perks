@@ -22,7 +22,7 @@ public class GlobalPerkListener implements Listener {
     public final static List<String> dropWorlds = new ArrayList<>();
     public final static List<String> disabledWorlds = new ArrayList<>();
 
-    private final static String BUNKER_PREFIX = "bunker";
+    public final static String BUNKER_PREFIX = "bunker";
 
     public GlobalPerkListener() {
 
