@@ -3,6 +3,7 @@ package me.remag501.perks.ui;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -16,8 +17,16 @@ import java.util.Map;
 
 public class PerkMenu {
 
-    public static void open(Player player, int page, boolean hiddenMenu) {
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+    private final PerkManager perkManager;
+    private final PerkRegistry perkRegistry;
+
+    public PerkMenu(PerkManager perkManager, PerkRegistry perkRegistry) {
+        this.perkManager = perkManager;
+        this.perkRegistry = perkRegistry;
+    }
+
+    public void open(Player player, int page, boolean hiddenMenu) {
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         Inventory inv = Bukkit.createInventory(null, 54, "Choose Your Perk");
 
         // 1. Load Header
@@ -43,7 +52,7 @@ public class PerkMenu {
             PerkType type = entry.getKey();
             int stars = entry.getValue();
 
-            ItemStack item = type.getItem().clone();
+            ItemStack item = perkRegistry.getPerkItem(type).clone();
             ItemUtil.updateStarCount(item, type, stars);
             inv.setItem(slotIndex++, item);
         }
@@ -62,7 +71,7 @@ public class PerkMenu {
 
             if (k < pagePerks.size()) {
                 PerkType type = pagePerks.get(k++);
-                ItemStack item = type.getItem().clone();
+                ItemStack item = perkRegistry.getPerkItem(type).clone();
 
                 // Update item with player-specific info
                 ItemUtil.updateEquipStatus(item, equipped);
@@ -119,7 +128,7 @@ public class PerkMenu {
         player.openInventory(inv);
     }
 
-    private static List<PerkType> getPerksByRarity(int rarity) {
+    private List<PerkType> getPerksByRarity(int rarity) {
         List<PerkType> perks = new ArrayList<>();
         for (PerkType type : PerkType.values()) {
             if (type.getRarity() == rarity) {
@@ -129,7 +138,7 @@ public class PerkMenu {
         return perks;
     }
 
-    private static List<PerkType> perkTypesByPage(int page) {
+    private List<PerkType> perkTypesByPage(int page) {
         List<PerkType> perks = new ArrayList<>();
         int count = 0, passed = 0;
 

@@ -2,6 +2,7 @@ package me.remag501.perks.manager;
 
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -16,41 +17,24 @@ import java.util.*;
  */
 public class PerkManager {
 
-    private static PerkManager instance;
-
     private final Map<UUID, PerkProfile> profiles;
-    private final Plugin plugin;
+    private final Plugin plugin; // Used for .logger
+    private final ConfigUtil perkConfig;
+    private final PerkRegistry perkRegistry;
 
-    private PerkManager(Plugin plugin) {
+    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, ConfigUtil perkConfig) {
         this.plugin = plugin;
+        this.perkRegistry = perkRegistry;
+        this.perkConfig = perkConfig;
         this.profiles = new HashMap<>();
-    }
-
-    /**
-     * Initialize the manager singleton.
-     */
-    public static void initialize(Plugin plugin) {
-        if (instance != null) {
-            throw new IllegalStateException("PerkManager already initialized");
-        }
-        instance = new PerkManager(plugin);
-    }
-
-    /**
-     * Get the singleton instance.
-     */
-    public static PerkManager getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("PerkManager not initialized");
-        }
-        return instance;
     }
 
     /**
      * Get or create a player's perk profile.
      */
     public PerkProfile getProfile(UUID playerUUID) {
-        return profiles.computeIfAbsent(playerUUID, PerkProfile::new);
+        // k represents the playerUUID being passed into the map
+        return profiles.computeIfAbsent(playerUUID, k -> new PerkProfile(this.perkRegistry, k));
     }
 
     /**
@@ -75,7 +59,7 @@ public class PerkManager {
         PerkProfile profile = getProfile(playerUUID);
 
         String playerID = playerUUID.toString();
-        ConfigUtil perkConfig = new ConfigUtil(plugin, "perks.yml");
+//        ConfigUtil perkConfig = new ConfigUtil(plugin, "perks.yml");
         FileConfiguration config = perkConfig.getConfig();
 
         List<String> equippedList = config.getStringList(playerID + "_equipped");
@@ -239,10 +223,4 @@ public class PerkManager {
         return new ArrayList<>(profiles.values());
     }
 
-    /**
-     * Get the plugin instance.
-     */
-    public Plugin getPlugin() {
-        return plugin;
-    }
 }

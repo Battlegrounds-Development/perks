@@ -2,6 +2,7 @@ package me.remag501.perks.model;
 
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -23,7 +24,10 @@ public class PerkProfile {
     private int perkPoints;
     private PerkType pendingScrap;
 
-    public PerkProfile(UUID playerUUID) {
+    private final PerkRegistry perkRegistry;
+
+    public PerkProfile(PerkRegistry perkRegistry, UUID playerUUID) {
+        this.perkRegistry = perkRegistry;
         this.playerUUID = playerUUID;
         this.ownedPerks = new HashMap<>();
         this.equippedPerks = new HashMap<>();
@@ -60,7 +64,7 @@ public class PerkProfile {
 
             // Only disable logic if they were actually using it
             if (equipped && isPerkWorld(player)) {
-                type.getPerk().onDisable(player);
+                perkRegistry.getPerk(type).onDisable(player);
             }
         } else {
             ownedPerks.put(type, currentQuantity - 1);
@@ -73,9 +77,9 @@ public class PerkProfile {
 
             // Only toggle gameplay logic if equipped AND in a perk world
             if (equipped && isPerkWorld(player)) {
-                type.getPerk().onDisable(player);
+                perkRegistry.getPerk(type).onDisable(player);
                 // Re-enable with the new (lower) star count
-                type.getPerk().onEnable(player, equippedPerks.get(type));
+                perkRegistry.getPerk(type).onEnable(player, equippedPerks.get(type));
             }
         }
         return true;
@@ -136,7 +140,7 @@ public class PerkProfile {
             equippedPerks.put(type, newStars);
 
             // Re-enable with new star count
-            Perk perk = type.getPerk();
+            Perk perk = perkRegistry.getPerk(type);
 
             if (isPerkWorld(player)) {
                 perk.onDisable(player);
@@ -153,7 +157,7 @@ public class PerkProfile {
 
         // Equip new perk
         equippedPerks.put(type, 1); // Start with 1 star
-        Perk perk = type.getPerk();
+        Perk perk = perkRegistry.getPerk(type);
 
         if (isPerkWorld(player)) {
             perk.onEnable(player, 1);
@@ -174,7 +178,7 @@ public class PerkProfile {
             equippedPerks.put(type, newStars);
 
             // Re-enable with new star count
-            Perk perk = type.getPerk();
+            Perk perk = perkRegistry.getPerk(type);
 
 
             if (isPerkWorld(player)) {
@@ -186,7 +190,7 @@ public class PerkProfile {
 
         // Remove the perk
         equippedPerks.remove(type);
-        Perk perk = type.getPerk();
+        Perk perk = perkRegistry.getPerk(type);
 
         if (isPerkWorld(player)) {
             perk.onDisable(player);
@@ -264,7 +268,7 @@ public class PerkProfile {
             }
             equippedPerks.remove(type);
 
-            Perk perk = type.getPerk();
+            Perk perk = perkRegistry.getPerk(type);
 
             if (isPerkWorld(player)) {
                 perk.onDisable(player);
@@ -326,7 +330,7 @@ public class PerkProfile {
 
     public void clearEquippedPerks(Player player) {
         for (PerkType type : equippedPerks.keySet()) {
-            Perk perk = type.getPerk();
+            Perk perk = perkRegistry.getPerk(type);
 
             if (isPerkWorld(player)) {
                 perk.onDisable(player);

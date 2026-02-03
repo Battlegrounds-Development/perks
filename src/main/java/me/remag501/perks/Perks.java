@@ -5,10 +5,12 @@ import me.remag501.perks.listener.GlobalPerkListener;
 import me.remag501.perks.listener.PerkMenuListener;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.ui.PerkMenu;
 import me.remag501.perks.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 
@@ -16,6 +18,8 @@ import static me.remag501.perks.util.WorldUtil.DISABLED_WORLDS;
 import static me.remag501.perks.util.WorldUtil.DROP_WORLDS;
 
 public class Perks extends JavaPlugin {
+
+    private PerkManager perkManager;
 
     @Override
     public void onEnable() {
@@ -25,23 +29,29 @@ public class Perks extends JavaPlugin {
         loadConfiguration();
 
         // 2. Initialize singletons in correct order
-        getLogger().info("Initializing PerkRegistry...");
-        PerkRegistry.initialize(this);
 
-        getLogger().info("Initializing PerkManager...");
-        PerkManager.initialize(this);
+        PerkRegistry perkRegistry = new PerkRegistry(this);
+        ConfigUtil configUtil = new ConfigUtil(this, "perks.yml");
+        perkManager = new PerkManager(this, perkRegistry, configUtil);
+
+        perkRegistry.init(perkManager);
+
+        PerkMenu perkMenu = new PerkMenu(perkManager, perkRegistry);
 
         // 3. Register event listeners
-        getLogger().info("Registering event listeners...");
-        registerListeners();
+        getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry), this);
+        getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkRegistry, perkMenu), this);
 
         // 4. Register commands
-        getLogger().info("Registering commands...");
-        registerCommands();
+        this.getCommand("perks").setExecutor(new PerksCommand(this, perkManager, perkMenu));
+        // You can add tab completers here too
+        // this.getCommand("perks").setTabCompleter(new PerksTabCompleter());
 
         // 5. Load perks for online players (in case of reload)
-        getLogger().info("Loading perks for online players...");
-        loadOnlinePlayers();
+        Bukkit.getOnlinePlayers().forEach(player -> {
+            getLogger().info("Loading perks for online player: " + player.getName());
+            perkManager.handlePlayerJoin(player);
+        });
 
         getLogger().info("Perks plugin enabled successfully!");
     }
@@ -51,8 +61,8 @@ public class Perks extends JavaPlugin {
         getLogger().info("Saving all player perk data...");
 
         // Save all player data before shutdown
-        if (PerkManager.getInstance() != null) {
-            PerkManager.getInstance().saveAllPerks();
+        if (perkManager != null) {
+            perkManager.saveAllPerks();
         }
 
         getLogger().info("Perks plugin disabled!");
@@ -89,33 +99,4 @@ public class Perks extends JavaPlugin {
         perkConfig.save();
     }
 
-    /**
-     * Register all event listeners
-     */
-    private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new GlobalPerkListener(), this);
-        getServer().getPluginManager().registerEvents(new PerkMenuListener(), this);
-
-        // Note: Individual perk listeners are registered by PerkRegistry
-    }
-
-    /**
-     * Register all commands
-     */
-    private void registerCommands() {
-        this.getCommand("perks").setExecutor(new PerksCommand(this));
-
-        // You can add tab completers here too
-        // this.getCommand("perks").setTabCompleter(new PerksTabCompleter());
-    }
-
-    /**
-     * Load perks for any players already online (useful for plugin reload)
-     */
-    private void loadOnlinePlayers() {
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            getLogger().info("Loading perks for online player: " + player.getName());
-            PerkManager.getInstance().handlePlayerJoin(player);
-        });
-    }
 }

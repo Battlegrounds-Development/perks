@@ -4,6 +4,7 @@ import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 //import me.remag501.perks.ui.GambleMenu;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.ui.PerkMenu;
 //import me.remag501.perks.ui.ScrapMenu;
 import me.remag501.perks.util.ItemUtil;
@@ -18,6 +19,16 @@ import org.bukkit.inventory.ItemStack;
 
 public class PerkMenuListener implements Listener {
 
+    private final PerkManager perkManager;
+    private final PerkRegistry perkRegistry;
+    private final PerkMenu perkMenu;
+
+    public PerkMenuListener(PerkManager perkManager, PerkRegistry perkRegistry, PerkMenu perkMenu) {
+        this.perkManager = perkManager;
+        this.perkRegistry = perkRegistry;
+        this.perkMenu = perkMenu;
+    }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!event.getView().getTitle().equals("Choose Your Perk")) return;
@@ -27,7 +38,7 @@ public class PerkMenuListener implements Listener {
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getType() == Material.AIR) return;
 
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
 
         // 1. Extract current page from the 'Next' or 'Back' button lore
         ItemStack pager = event.getInventory().getItem(53);
@@ -45,16 +56,16 @@ public class PerkMenuListener implements Listener {
             player.sendMessage("§cGamble menu not yet implemented!");
             return;
         } else if (name.equals("§a§lNEXT")) {
-            PerkMenu.open(player, currentPage + 1, ItemUtil.hiddenItem(clicked));
+            perkMenu.open(player, currentPage + 1, ItemUtil.hiddenItem(clicked));
             return;
         } else if (name.equals("§c§lBACK")) {
-            PerkMenu.open(player, currentPage - 1, ItemUtil.hiddenItem(clicked));
+            perkMenu.open(player, currentPage - 1, ItemUtil.hiddenItem(clicked));
             return;
         }
 
         // 3. Handle Perk Interaction
         for (PerkType type : PerkType.values()) {
-            if (ItemUtil.areItemsEqual(clicked, type.getItem())) {
+            if (ItemUtil.areItemsEqual(clicked, perkRegistry.getPerkItem(type))) {
                 boolean isHidden = ItemUtil.hiddenItem(clicked);
 
                 if (event.getClick() == ClickType.LEFT) {
@@ -78,7 +89,7 @@ public class PerkMenuListener implements Listener {
                 }
 
                 // Refresh the current UI
-                PerkMenu.open(player, currentPage, isHidden);
+                perkMenu.open(player, currentPage, isHidden);
                 break;
             }
         }

@@ -22,6 +22,10 @@ import java.util.*;
 
 public class ItemUtil {
 
+    // Top of ItemUtil
+    public static final NamespacedKey PERK_ID_KEY = new NamespacedKey(
+            Bukkit.getPluginManager().getPlugin("Perks"), "unique_id"
+    );
 
     /*
 
@@ -232,59 +236,90 @@ public class ItemUtil {
         return item;
     }
 
+//    public static ItemStack getPerkCard(PerkType perkType) {
+//        // Clone the original item to avoid modifying the base item
+//        ItemStack item = perkType.getItem();
+//        ItemStack perkCard = item.clone();
+//        perkCard.setType(Material.PAPER);
+//        ItemMeta meta = perkCard.getItemMeta();
+//
+//        if (meta != null) {
+//            // Get the rarity color from previous item
+//            ItemMeta itemMeta = item.getItemMeta();
+//            String firstLine = itemMeta.getLore().get(0);
+//            char colorCode = firstLine.charAt(1);
+//            // Update the display name to represent the card
+//            meta.setDisplayName("§" + colorCode + "§l" + itemMeta.getDisplayName());
+//            meta.setCustomModelData(perkType.getCustomModelData());
+//
+//            // Add lore for clarity
+//            List<String> lore = new ArrayList<>();
+//            lore.add(ChatColor.RED + "You will obtain this perk when you extract!");
+//            meta.setLore(lore);
+//
+//            perkCard.setItemMeta(meta);
+//        }
+//
+//        return perkCard;
+//    }
+
     public static ItemStack getPerkCard(PerkType perkType) {
-        // Clone the original item to avoid modifying the base item
-        ItemStack item = perkType.getItem();
-        ItemStack perkCard = item.clone();
-        perkCard.setType(Material.PAPER);
+        ItemStack perkCard = new ItemStack(Material.PAPER);
         ItemMeta meta = perkCard.getItemMeta();
 
         if (meta != null) {
-            // Get the rarity color from previous item
-            ItemMeta itemMeta = item.getItemMeta();
-            String firstLine = itemMeta.getLore().get(0);
-            char colorCode = firstLine.charAt(1);
-            // Update the display name to represent the card
-            meta.setDisplayName("§" + colorCode + "§l" + itemMeta.getDisplayName());
+            // Use the PerkType data directly instead of type.getItem()
+            String rarityColor = getRarityColor(perkType.getRarity());
+            meta.setDisplayName(rarityColor + "§l" + perkType.getDisplayName());
             meta.setCustomModelData(perkType.getCustomModelData());
 
-            // Add lore for clarity
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.RED + "You will obtain this perk when you extract!");
+            lore.add("§cYou will obtain this perk when you extract!");
             meta.setLore(lore);
 
             perkCard.setItemMeta(meta);
         }
-
         return perkCard;
     }
 
-    public static List<PerkType> itemsToPerks(PlayerInventory inventory) {
-        List<PerkType> perkTypes = new ArrayList<>();
-
-        for (ItemStack item : inventory.getContents()) {
-            if (item == null) continue;
-
-            for (PerkType type : PerkType.values()) {
-                ItemStack perkItem = type.getItem();
-                if (areItemsEqual(item, perkItem)) {
-                    for (int i = 0; i < item.getAmount(); i++) {
-                        perkTypes.add(type);
-                    }
-                    inventory.remove(item);
-                    break;
-                }
-            }
+    // Helper to replace your 'char colorCode' logic
+    private static String getRarityColor(int rarity) {
+        switch (rarity) {
+            case 1: return "§a"; // Uncommon
+            case 2: return "§b"; // Rare
+            case 3: return "§6"; // Legendary
+            default: return "§f"; // Common
         }
-
-        return perkTypes;
     }
 
+    public static List<PerkType> itemsToPerks(PlayerInventory inventory) {
+        List<PerkType> foundPerks = new ArrayList<>();
+        for (ItemStack item : inventory.getContents()) {
+            String id = getPerkID(item);
+            if (id != null) {
+                try {
+                    PerkType type = PerkType.valueOf(id.toUpperCase());
+                    for (int i = 0; i < item.getAmount(); i++) {
+                        foundPerks.add(type);
+                    }
+                    item.setAmount(0);
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+        return foundPerks;
+    }
+
+//    public static String getPerkID(ItemStack item) {
+//        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
+//        NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
+//        String id = container.get(key, PersistentDataType.STRING);
+//        return id;
+//    }
+
+    // Then in your getPerkID method:
     public static String getPerkID(ItemStack item) {
-        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
-        NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
-        String id = container.get(key, PersistentDataType.STRING);
-        return id;
+        if (item == null || !item.hasItemMeta()) return null;
+        return item.getItemMeta().getPersistentDataContainer().get(PERK_ID_KEY, PersistentDataType.STRING);
     }
 
     // Function to check if two ItemStacks are equal based on their PersistentDataContainer
@@ -409,47 +444,37 @@ public class ItemUtil {
      * NEW: Takes Map<PerkType, Integer> for equipped perks.
      */
     public static void updateEquipStatus(ItemStack item, Map<PerkType, Integer> equippedPerks) {
-        // Find which PerkType this item represents
-        PerkType itemType = null;
-        for (PerkType type : PerkType.values()) {
-            if (areItemsEqual(item, type.getItem())) {
-                itemType = type;
-                break;
+        // Identify the perk using the PDC tag you already have
+        String id = getPerkID(item);
+        if (id == null) return;
+
+        try {
+            PerkType itemType = PerkType.valueOf(id.toUpperCase());
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) return;
+
+            boolean equipped = equippedPerks.containsKey(itemType);
+
+            if (equipped) {
+                meta.addEnchant(Enchantment.LUCK, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                List<String> lore = meta.getLore();
+                if (lore == null) lore = new ArrayList<>();
+                // Avoid double-adding
+                if (!lore.contains("§c§lEquipped")) {
+                    lore.add(0, "§c§lEquipped");
+                }
+                meta.setLore(lore);
+            } else {
+                meta.removeEnchant(Enchantment.LUCK);
+                List<String> lore = meta.getLore();
+                if (lore != null) {
+                    lore.remove("§c§lEquipped");
+                    meta.setLore(lore);
+                }
             }
-        }
-
-        if (itemType == null) return;
-
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
-
-        boolean equipped = equippedPerks.containsKey(itemType);
-
-        // Enchant the item and add lore to show it's equipped
-        if (equipped) {
-            // Enchant
-            meta.addEnchant(Enchantment.LUCK, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-
-            // Get previous lore
-            List<String> lore = meta.getLore();
-            if (lore == null) lore = new ArrayList<>();
-
-            lore.add(0, "§c§lEquipped");
-            meta.setLore(lore);
-        } else {
-            meta.removeEnchant(Enchantment.LUCK);
-            meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
-
-            // Get previous lore
-            List<String> lore = meta.getLore();
-            if (lore != null) {
-                lore.remove("§c§lEquipped");
-            }
-            meta.setLore(lore);
-        }
-
-        item.setItemMeta(meta);
+            item.setItemMeta(meta);
+        } catch (IllegalArgumentException ignored) {}
     }
 
     /**

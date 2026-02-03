@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -29,8 +30,13 @@ public class Kangaroo extends Perk {
     // This perk needs cooldowns, so it stores them here
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
-    public Kangaroo() {
+    private final Plugin plugin;
+    private final PerkManager perkManager;
+
+    public Kangaroo(Plugin plugin, PerkManager perkManager) {
         super(PerkType.KANGAROO);
+        this.perkManager = perkManager;
+        this.plugin = plugin;
     }
 
     @Override
@@ -129,7 +135,7 @@ public class Kangaroo extends Perk {
                     player.sendMessage("§a§l(!) §aDouble jump is ready!");
                 }
             }
-        }.runTaskLater(PerkRegistry.getInstance().getPlugin(), 600L); // 30 seconds
+        }.runTaskLater(plugin, 600L); // 30 seconds
     }
 
     private boolean isOnCooldown(UUID uuid) {
@@ -141,7 +147,7 @@ public class Kangaroo extends Perk {
     }
 
     private boolean isPlayerUsingPerk(Player player) {
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         return profile.isActive(getType());
     }
 }

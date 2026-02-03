@@ -16,10 +16,14 @@ import java.util.*;
 
 public class PerksCommand implements CommandExecutor {
 
-    private Plugin plugin;
+    private final Plugin plugin;
+    private final PerkManager perkManager;
+    private final PerkMenu perkMenu;
 
-    public PerksCommand(Plugin plugin) {
+    public PerksCommand(Plugin plugin, PerkManager perkManager, PerkMenu perkMenu) {
         this.plugin = plugin;
+        this.perkManager = perkManager;
+        this.perkMenu = perkMenu;
     }
 
     @Override
@@ -142,7 +146,7 @@ public class PerksCommand implements CommandExecutor {
             return;
         }
 
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         profile.addPerkPoints(points);
         player.sendMessage("§6§lPERKS §8» §7You received " + points + " perk points. Total: " + profile.getPerkPoints());
     }
@@ -158,7 +162,7 @@ public class PerksCommand implements CommandExecutor {
         }
 
         // Get player's profile
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
 
         // Add perk to player's owned perks list
         if (profile.addOwnedPerk(perk)) {
@@ -206,7 +210,7 @@ public class PerksCommand implements CommandExecutor {
         }
 
         // Get player's profile
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
 
         // Remove perk from player's owned perks list
         if (profile.removeOwnedPerk(perk)) {
@@ -218,7 +222,7 @@ public class PerksCommand implements CommandExecutor {
 
     private void reload(CommandSender sender) {
         // Save all current data
-        PerkManager.getInstance().saveAllPerks();
+//        PerkManager.getInstance().saveAllPerks();
         sender.sendMessage("§6§lPERKS §8» §aAll perk data saved!");
 
         // Note: Full reload would require plugin reload
@@ -226,7 +230,7 @@ public class PerksCommand implements CommandExecutor {
     }
 
     private void saveAll(CommandSender sender) {
-        PerkManager.getInstance().saveAllPerks();
+//        PerkManager.getInstance().saveAllPerks();
         sender.sendMessage("§6§lPERKS §8» §aAll perk data saved!");
     }
 
@@ -237,9 +241,9 @@ public class PerksCommand implements CommandExecutor {
         }
 
         // Ensure the player's profile exists (it should from join event, but just in case)
-        PerkManager.getInstance().getProfile(player.getUniqueId());
+        perkManager.getProfile(player.getUniqueId());
 
         // Open the perk menu (start at page 0)
-        PerkMenu.open(player, 0, hiddenMenu);
+        perkMenu.open(player, 0, hiddenMenu);
     }
 }

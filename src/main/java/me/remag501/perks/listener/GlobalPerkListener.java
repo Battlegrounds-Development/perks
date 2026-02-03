@@ -3,6 +3,7 @@ package me.remag501.perks.listener;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
+import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,6 +21,14 @@ import java.util.Map;
 import static me.remag501.perks.util.WorldUtil.*;
 
 public class GlobalPerkListener implements Listener {
+
+    private final PerkManager perkManager;
+    private final PerkRegistry perkRegistry;
+
+    public GlobalPerkListener(PerkManager perkManager, PerkRegistry perkRegistry) {
+        this.perkManager = perkManager;
+        this.perkRegistry = perkRegistry;
+    }
 
 
     private void checkAllowedWorld(Player player) {
@@ -51,10 +60,10 @@ public class GlobalPerkListener implements Listener {
             }
 
             // Give perks to player
-            PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+            PerkProfile profile = perkManager.getProfile(player.getUniqueId());
             for (PerkType perkType : collectedPerks) {
                 // Create colored string for perk name
-                ItemMeta itemMeta = perkType.getItem().getItemMeta();
+                ItemMeta itemMeta = perkRegistry.getPerkItem(perkType).getItemMeta();
                 String firstLine = itemMeta.getLore().get(0);
                 char colorCode = firstLine.charAt(1);
                 String itemName = "§" + colorCode + "§l" + itemMeta.getDisplayName();
@@ -80,7 +89,7 @@ public class GlobalPerkListener implements Listener {
 
         if (!DISABLED_WORLDS.contains(worldName)) {
             // Player died in region where they lose perk
-            PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+            PerkProfile profile = perkManager.getProfile(player.getUniqueId());
             Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
 
             if (equippedPerks.isEmpty()) {
@@ -125,7 +134,7 @@ public class GlobalPerkListener implements Listener {
         Player player = event.getPlayer();
 
         // Load player's perks
-        PerkManager.getInstance().handlePlayerJoin(player);
+        perkManager.handlePlayerJoin(player);
 
         // Check if player can enable their perks
         checkAllowedWorld(player);
@@ -139,11 +148,11 @@ public class GlobalPerkListener implements Listener {
         disablePlayerPerks(player);
 
         // Save and cleanup
-        PerkManager.getInstance().handlePlayerQuit(player);
+        perkManager.handlePlayerQuit(player);
     }
 
     private void disablePlayerPerks(Player player) {
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
 
         // Disable each equipped perk
@@ -151,12 +160,12 @@ public class GlobalPerkListener implements Listener {
             PerkType type = entry.getKey();
             int stars = entry.getValue();
 
-            type.getPerk().onDisable(player);
+            perkRegistry.getPerk(type).onDisable(player);
         }
     }
 
     private void enablePlayerPerks(Player player) {
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
 
         // Enable each equipped perk with correct star count
@@ -164,7 +173,7 @@ public class GlobalPerkListener implements Listener {
             PerkType type = entry.getKey();
             int stars = entry.getValue();
 
-            type.getPerk().onEnable(player, stars);
+            perkRegistry.getPerk(type).onEnable(player, stars);
         }
     }
 }

@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -29,8 +30,13 @@ public class Bloodied extends Perk {
     private final Map<UUID, PlayerBloodiedState> playerStates = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> healthCheckTasks = new ConcurrentHashMap<>();
 
-    public Bloodied() {
+    private final Plugin plugin;
+    private final PerkManager perkManager;
+
+    public Bloodied(Plugin plugin, PerkManager perkManager) {
         super(PerkType.BLOODIED);
+        this.plugin = plugin;
+        this.perkManager = perkManager;
     }
 
     @Override
@@ -43,7 +49,7 @@ public class Bloodied extends Perk {
 
         // Start periodic health check
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(
-                PerkRegistry.getInstance().getPlugin(),
+                plugin,
                 () -> checkHealthAndApplyEffect(player),
                 0L,
                 200L // Check every 10 seconds
@@ -88,7 +94,7 @@ public class Bloodied extends Perk {
         }
 
         // Check if still equipped
-        PerkProfile profile = PerkManager.getInstance().getProfile(uuid);
+        PerkProfile profile = perkManager.getProfile(uuid);
         if (!profile.isActive(getType())) {
             return;
         }
@@ -183,7 +189,7 @@ public class Bloodied extends Perk {
 
         // Check health immediately when damaged
         Bukkit.getScheduler().runTask(
-                PerkRegistry.getInstance().getPlugin(),
+                plugin,
                 () -> checkHealthAndApplyEffect(player)
         );
     }
@@ -196,7 +202,7 @@ public class Bloodied extends Perk {
 
         // Check health immediately when healed
         Bukkit.getScheduler().runTask(
-                PerkRegistry.getInstance().getPlugin(),
+                plugin,
                 () -> checkHealthAndApplyEffect(player)
         );
     }
@@ -209,7 +215,7 @@ public class Bloodied extends Perk {
 
         // Recheck health when effects change
         Bukkit.getScheduler().runTask(
-                PerkRegistry.getInstance().getPlugin(),
+                plugin,
                 () -> checkHealthAndApplyEffect(player)
         );
     }

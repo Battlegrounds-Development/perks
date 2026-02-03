@@ -7,6 +7,7 @@ import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.model.PerkProfile;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -27,8 +28,13 @@ public class Flash extends Perk {
     // Track weakness application tasks per player
     private final Map<UUID, BukkitTask> weaknessTasks = new ConcurrentHashMap<>();
 
-    public Flash() {
+    private final Plugin plugin;
+    private final PerkManager perkManager;
+
+    public Flash(Plugin plugin, PerkManager perkManager) {
         super(PerkType.FLASH);
+        this.plugin = plugin;
+        this.perkManager = perkManager;
     }
 
     @Override
@@ -46,7 +52,7 @@ public class Flash extends Perk {
 
         // Start periodic weakness application
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(
-                PerkRegistry.getInstance().getPlugin(),
+                plugin,
                 () -> applyWeakness(player),
                 WEAKNESS_INTERVAL, // Initial delay (2 minutes)
                 WEAKNESS_INTERVAL  // Repeat every 2 minutes
@@ -81,7 +87,7 @@ public class Flash extends Perk {
         }
 
         // Verify player still has perk equipped
-        PerkProfile profile = PerkManager.getInstance().getProfile(player.getUniqueId());
+        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         if (!profile.isActive(getType())) {
             // Perk was unequipped, stop the task
             BukkitTask task = weaknessTasks.remove(player.getUniqueId());
