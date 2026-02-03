@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public class PerkMenu {
 
         // 3. Load Available Perks (Middle Grid)
         List<PerkType> owned = profile.getOwnedPerksList();
-        List<PerkType> pagePerks = PerkType.perkTypesByPage(page);
+        List<PerkType> pagePerks = perkTypesByPage(page);
 
         for (int i = 19, k = 0; i < 35; i++) {
             if (i % 9 == 0 || (i + 1) % 9 == 0) continue;
@@ -77,7 +78,7 @@ public class PerkMenu {
         // 4. Pagination Buttons
         int totalPages = hiddenMenu ?
                 (int) Math.ceil(PerkType.values().length / 14.0) :
-                (int) Math.ceil((PerkType.values().length - PerkType.getPerksByRarity(4).size()) / 14.0);
+                (int) Math.ceil((PerkType.values().length - getPerksByRarity(4).size()) / 14.0);
 
         if (page >= totalPages - 1) {
             inv.setItem(53, ItemUtil.createItem(
@@ -117,4 +118,36 @@ public class PerkMenu {
 
         player.openInventory(inv);
     }
+
+    private static List<PerkType> getPerksByRarity(int rarity) {
+        List<PerkType> perks = new ArrayList<>();
+        for (PerkType type : PerkType.values()) {
+            if (type.getRarity() == rarity) {
+                perks.add(type);
+            }
+        }
+        return perks;
+    }
+
+    private static List<PerkType> perkTypesByPage(int page) {
+        List<PerkType> perks = new ArrayList<>();
+        int count = 0, passed = 0;
+
+        for (PerkType type : PerkType.values()) {
+            if (type.getRarity() != -1) { // Item is not hidden
+                if (passed / 14 == page) {
+                    perks.add(type);
+                    count++;
+                } else {
+                    passed++;
+                }
+
+                if (count == 14) {
+                    break;
+                }
+            }
+        }
+        return perks;
+    }
+
 }

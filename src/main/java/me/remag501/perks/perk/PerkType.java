@@ -88,48 +88,4 @@ public enum PerkType {
         return requirements;
     }
 
-    /**
-     * Get the Perk instance from the registry.
-     */
-    public Perk getPerk() {
-        return PerkRegistry.getInstance().getPerk(this);
-    }
-
-    /**
-     * Get the ItemStack representation of this perk.
-     */
-    public ItemStack getItem() {
-        return PerkRegistry.getInstance().getPerkItem(this);
-    }
-
-    public static List<PerkType> getPerksByRarity(int rarity) {
-        List<PerkType> perks = new ArrayList<>();
-        for (PerkType type : PerkType.values()) {
-            if (type.getRarity() == rarity) {
-                perks.add(type);
-            }
-        }
-        return perks;
-    }
-
-    public static List<PerkType> perkTypesByPage(int page) {
-        List<PerkType> perks = new ArrayList<>();
-        int count = 0, passed = 0;
-
-        for (PerkType type : PerkType.values()) {
-            if (type.getRarity() != -1) { // Item is not hidden
-                if (passed / 14 == page) {
-                    perks.add(type);
-                    count++;
-                } else {
-                    passed++;
-                }
-
-                if (count == 14) {
-                    break;
-                }
-            }
-        }
-        return perks;
-    }
 }

@@ -19,8 +19,6 @@ import java.util.Map;
  */
 public class PerkRegistry {
 
-    private static PerkRegistry instance;
-
     private final Map<PerkType, Perk> perks;
     private final Map<PerkType, ItemStack> perkItems;
     private final Plugin plugin;
@@ -30,20 +28,6 @@ public class PerkRegistry {
         this.perks = new HashMap<>();
         this.perkItems = new HashMap<>();
         registerPerks();
-    }
-
-    public static void initialize(Plugin plugin) {
-        if (instance != null) {
-            throw new IllegalStateException("PerkRegistry already initialized");
-        }
-        instance = new PerkRegistry(plugin);
-    }
-
-    public static PerkRegistry getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("PerkRegistry not initialized");
-        }
-        return instance;
     }
 
     private void registerPerks() {
@@ -74,9 +58,5 @@ public class PerkRegistry {
 
     public ItemStack getPerkItem(PerkType type) {
         return perkItems.get(type);
-    }
-
-    public Plugin getPlugin() {
-        return plugin;
     }
 }
