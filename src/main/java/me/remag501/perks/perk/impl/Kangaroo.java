@@ -49,12 +49,9 @@ public class Kangaroo extends Perk {
             player.setFlying(false);
             player.setAllowFlight(false);
         }
-    }
 
-    @Override
-    public void cleanup(UUID playerUUID) {
-        // Clean up cooldown data when player leaves or unequips
-        cooldowns.remove(playerUUID);
+        cooldowns.remove(player.getUniqueId());
+
     }
 
     @EventHandler

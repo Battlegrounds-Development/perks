@@ -41,15 +41,15 @@ public abstract class Perk implements Listener {
      */
     public abstract void onDisable(Player player);
 
-    /**
-     * Optional cleanup when player leaves or unequips.
-     * Override this if your perk needs to clean up player-specific data.
-     * @param playerUUID The player's UUID
-     */
-    public void cleanup(UUID playerUUID) {
-        // Default: no cleanup needed
-        // Perks like Kangaroo can override this to clear cooldowns
-    }
+//    /**
+//     * Optional cleanup when player leaves or unequips.
+//     * Override this if your perk needs to clean up player-specific data.
+//     * @param playerUUID The player's UUID
+//     */
+//    public void cleanup(UUID playerUUID) {
+//        // Default: no cleanup needed
+//        // Perks like Kangaroo can override this to clear cooldowns
+//    }
 
     @Override
     public boolean equals(Object obj) {

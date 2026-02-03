@@ -72,15 +72,6 @@ public class Flash extends Perk {
         }
     }
 
-    @Override
-    public void cleanup(UUID playerUUID) {
-        // Clean up weakness task
-        BukkitTask task = weaknessTasks.remove(playerUUID);
-        if (task != null) {
-            task.cancel();
-        }
-    }
-
     /**
      * Apply weakness debuff if player still has perk equipped.
      */

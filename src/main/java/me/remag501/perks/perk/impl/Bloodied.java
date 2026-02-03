@@ -57,30 +57,21 @@ public class Bloodied extends Perk {
     public void onDisable(Player player) {
         UUID uuid = player.getUniqueId();
 
-        // Cancel health check task
-        BukkitTask task = healthCheckTasks.remove(uuid);
-        if (task != null) {
-            task.cancel();
-        }
-
         // Remove bloodied effect if active
         PlayerBloodiedState state = playerStates.get(uuid);
         if (state != null && state.isBloodied && player.isOnline()) {
             removeBloodiedEffect(player, state);
         }
 
-        // Don't remove state yet - cleanup() will handle it
-    }
-
-    @Override
-    public void cleanup(UUID playerUUID) {
         // Clean up all player-specific data
-        BukkitTask task = healthCheckTasks.remove(playerUUID);
+        BukkitTask task = healthCheckTasks.remove(uuid);
         if (task != null) {
             task.cancel();
         }
-        playerStates.remove(playerUUID);
+
+        playerStates.remove(uuid);
     }
+
 
     /**
      * Check player's health and apply/remove bloodied effect as needed.
