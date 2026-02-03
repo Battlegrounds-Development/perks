@@ -52,21 +52,29 @@ public class PerkProfile {
         }
 
         Player player = Bukkit.getPlayer(playerUUID);
+        boolean equipped = isEquipped(type); // Cache the status
 
         if (currentQuantity == 1) {
             ownedPerks.remove(type);
             equippedPerks.remove(type);
 
-            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+            // Only disable logic if they were actually using it
+            if (equipped && isPerkWorld(player)) {
                 type.getPerk().onDisable(player);
             }
         } else {
             ownedPerks.put(type, currentQuantity - 1);
-            if (type.isStarPerk())
-                equippedPerks.put(type, equippedPerks.get(type) - 1);
 
-            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+            // Downgrade stars only if equipped
+            if (type.isStarPerk() && equipped) {
+                int currentStars = equippedPerks.get(type);
+                equippedPerks.put(type, currentStars - 1);
+            }
+
+            // Only toggle gameplay logic if equipped AND in a perk world
+            if (equipped && isPerkWorld(player)) {
                 type.getPerk().onDisable(player);
+                // Re-enable with the new (lower) star count
                 type.getPerk().onEnable(player, equippedPerks.get(type));
             }
         }
@@ -130,7 +138,7 @@ public class PerkProfile {
             // Re-enable with new star count
             Perk perk = type.getPerk();
 
-            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+            if (isPerkWorld(player)) {
                 perk.onDisable(player);
                 perk.onEnable(player, newStars);
             }
@@ -147,7 +155,7 @@ public class PerkProfile {
         equippedPerks.put(type, 1); // Start with 1 star
         Perk perk = type.getPerk();
 
-        if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+        if (isPerkWorld(player)) {
             perk.onEnable(player, 1);
         }
 
@@ -169,7 +177,7 @@ public class PerkProfile {
             Perk perk = type.getPerk();
 
 
-            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+            if (isPerkWorld(player)) {
                 perk.onDisable(player);
                 perk.onEnable(player, newStars);
             }
@@ -180,7 +188,7 @@ public class PerkProfile {
         equippedPerks.remove(type);
         Perk perk = type.getPerk();
 
-        if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+        if (isPerkWorld(player)) {
             perk.onDisable(player);
         }
 
@@ -192,7 +200,7 @@ public class PerkProfile {
 
     public boolean isActive(PerkType type) {
         Player player = Bukkit.getPlayer(playerUUID);
-        if (disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX)) {
+        if (!isPerkWorld(player)) {
             return false;
         }
 
@@ -258,7 +266,7 @@ public class PerkProfile {
 
             Perk perk = type.getPerk();
 
-            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+            if (isPerkWorld(player)) {
                 perk.onDisable(player);
             }
 
@@ -320,11 +328,20 @@ public class PerkProfile {
         for (PerkType type : equippedPerks.keySet()) {
             Perk perk = type.getPerk();
 
-            if (!(disabledWorlds.contains(player.getWorld().getName()) || player.getWorld().getName().startsWith(BUNKER_PREFIX))) {
+            if (isPerkWorld(player)) {
                 perk.onDisable(player);
             }
         }
         equippedPerks.clear();
+    }
+
+    private boolean isPerkWorld(Player player) {
+        // If the player is null (offline), they aren't in ANY world,
+        // so the perk logic shouldn't run.
+        if (player == null) return false;
+
+        String worldName = player.getWorld().getName();
+        return !disabledWorlds.contains(worldName) && !worldName.startsWith(BUNKER_PREFIX);
     }
 
 }
