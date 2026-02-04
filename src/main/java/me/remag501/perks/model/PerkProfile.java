@@ -4,7 +4,6 @@ import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.registry.WorldRegistry;
-import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

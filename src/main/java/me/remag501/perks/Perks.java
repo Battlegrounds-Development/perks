@@ -6,6 +6,8 @@ import me.remag501.perks.listener.PerkMenuListener;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.registry.WorldRegistry;
+import me.remag501.perks.service.ItemService;
+import me.remag501.perks.service.NamespaceService;
 import me.remag501.perks.ui.PerkMenu;
 import me.remag501.perks.manager.ConfigManager;
 import org.bukkit.Bukkit;
@@ -30,28 +32,28 @@ public class Perks extends JavaPlugin {
 
         // 2. Initialize singletons in correct order
 
-        PerkRegistry perkRegistry = new PerkRegistry(this);
+        NamespaceService namespaceService = new NamespaceService(this);
+        ItemService itemService = new ItemService(namespaceService);
+
+        PerkRegistry perkRegistry = new PerkRegistry(this, itemService);
         ConfigManager configManager = new ConfigManager(this, "perks.yml");
         perkManager = new PerkManager(this, perkRegistry, worldRegistry, configManager);
 
         perkRegistry.init(perkManager);
 
-        PerkMenu perkMenu = new PerkMenu(perkManager, perkRegistry);
+        PerkMenu perkMenu = new PerkMenu(perkManager, perkRegistry, itemService);
 
         // 3. Register event listeners
-        getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry, worldRegistry), this);
-        getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkRegistry, perkMenu), this);
+        getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry, worldRegistry, itemService), this);
+        getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkMenu, itemService), this);
 
         // 4. Register commands
-        this.getCommand("perks").setExecutor(new PerksCommand(this, perkManager, perkMenu));
+        this.getCommand("perks").setExecutor(new PerksCommand(this, perkManager, perkMenu, itemService));
         // You can add tab completers here too
         // this.getCommand("perks").setTabCompleter(new PerksTabCompleter());
 
         // 5. Load perks for online players (in case of reload)
-        Bukkit.getOnlinePlayers().forEach(player -> {
-            getLogger().info("Loading perks for online player: " + player.getName());
-            perkManager.handlePlayerJoin(player);
-        });
+        Bukkit.getOnlinePlayers().forEach(player -> perkManager.handlePlayerJoin(player));
 
         getLogger().info("Perks plugin enabled successfully!");
     }

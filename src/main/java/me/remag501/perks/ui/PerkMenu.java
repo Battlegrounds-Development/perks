@@ -4,6 +4,7 @@ import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.service.ItemService;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,10 +20,12 @@ public class PerkMenu {
 
     private final PerkManager perkManager;
     private final PerkRegistry perkRegistry;
+    private final ItemService itemService;
 
-    public PerkMenu(PerkManager perkManager, PerkRegistry perkRegistry) {
+    public PerkMenu(PerkManager perkManager, PerkRegistry perkRegistry, ItemService itemService) {
         this.perkManager = perkManager;
         this.perkRegistry = perkRegistry;
+        this.itemService = itemService;
     }
 
     public void open(Player player, int page, boolean hiddenMenu) {
@@ -30,10 +33,10 @@ public class PerkMenu {
         Inventory inv = Bukkit.createInventory(null, 54, "Choose Your Perk");
 
         // 1. Load Header
-        ItemStack head = ItemUtil.createSkull(player.getUniqueId(), player.getDisplayName(), player.getDisplayName());
+        ItemStack head = itemService.createSkull(player.getUniqueId(), player.getDisplayName(), player.getDisplayName());
         inv.setItem(0, head);
 
-        ItemStack rollButton = ItemUtil.createItem(
+        ItemStack rollButton = itemService.createItem(
                 Material.SUNFLOWER,
                 "§6§lOBTAIN PERKS",
                 "casino",
@@ -74,13 +77,13 @@ public class PerkMenu {
                 ItemStack item = perkRegistry.getPerkItem(type).clone();
 
                 // Update item with player-specific info
-                ItemUtil.updateEquipStatus(item, equipped);
-                ItemUtil.updateCount(item, owned, type);
+                itemService.updateEquipStatus(item, equipped);
+                itemService.updateCount(item, owned, type);
                 ItemUtil.updateRequirements(item, equipped, type);
 
                 inv.setItem(i, item);
             } else {
-                inv.setItem(i, ItemUtil.createItem(Material.BARRIER, "???", null, true));
+                inv.setItem(i, itemService.createItem(Material.BARRIER, "???", null, true));
             }
         }
 
@@ -90,7 +93,7 @@ public class PerkMenu {
                 (int) Math.ceil((PerkType.values().length - getPerksByRarity(4).size()) / 14.0);
 
         if (page >= totalPages - 1) {
-            inv.setItem(53, ItemUtil.createItem(
+            inv.setItem(53, itemService.createItem(
                     Material.PAPER,
                     "§f§lLAST PAGE",
                     null,
@@ -98,7 +101,7 @@ public class PerkMenu {
                     "§7§o" + (page + 1) + "/" + totalPages
             ));
         } else {
-            inv.setItem(53, ItemUtil.createItem(
+            inv.setItem(53, itemService.createItem(
                     Material.GREEN_DYE,
                     "§a§lNEXT",
                     null,
@@ -108,7 +111,7 @@ public class PerkMenu {
         }
 
         if (page == 0) {
-            inv.setItem(45, ItemUtil.createItem(
+            inv.setItem(45, itemService.createItem(
                     Material.PAPER,
                     "§f§lFIRST PAGE",
                     null,
@@ -116,7 +119,7 @@ public class PerkMenu {
                     "§7§o" + (page + 1) + "/" + totalPages
             ));
         } else {
-            inv.setItem(45, ItemUtil.createItem(
+            inv.setItem(45, itemService.createItem(
                     Material.RED_DYE,
                     "§c§lBACK",
                     null,

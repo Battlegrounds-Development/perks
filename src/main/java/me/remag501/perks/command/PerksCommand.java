@@ -4,26 +4,27 @@ import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.ui.PerkMenu;
-import me.remag501.perks.util.ItemUtil;
+import me.remag501.perks.service.ItemService;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-
-import java.util.*;
 
 public class PerksCommand implements CommandExecutor {
 
     private final Plugin plugin;
     private final PerkManager perkManager;
     private final PerkMenu perkMenu;
+    private final ItemService itemService;
 
-    public PerksCommand(Plugin plugin, PerkManager perkManager, PerkMenu perkMenu) {
+    public PerksCommand(Plugin plugin, PerkManager perkManager, PerkMenu perkMenu, ItemService itemService) {
         this.plugin = plugin;
         this.perkManager = perkManager;
         this.perkMenu = perkMenu;
+        this.itemService = itemService;
     }
 
     @Override
@@ -134,7 +135,7 @@ public class PerksCommand implements CommandExecutor {
         }
 
         // Get the perk card itemstack and give to player
-        player.getInventory().addItem(ItemUtil.getPerkCard(perkType));
+        player.getInventory().addItem(itemService.getPerkCard(perkType));
         player.sendMessage("§6§lPERKS §8» §7You received a " + perkType.getDisplayName() + " perk card!");
     }
 

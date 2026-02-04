@@ -5,7 +5,7 @@ import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.registry.WorldRegistry;
-import me.remag501.perks.util.ItemUtil;
+import me.remag501.perks.service.ItemService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -19,18 +19,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static me.remag501.perks.registry.WorldRegistry.*;
-
 public class GlobalPerkListener implements Listener {
 
     private final PerkManager perkManager;
     private final PerkRegistry perkRegistry;
     private final WorldRegistry worldRegistry;
+    private final ItemService itemService;
 
-    public GlobalPerkListener(PerkManager perkManager, PerkRegistry perkRegistry, WorldRegistry worldRegistry) {
+    public GlobalPerkListener(PerkManager perkManager, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ItemService itemService) {
         this.perkManager = perkManager;
         this.perkRegistry = perkRegistry;
         this.worldRegistry = worldRegistry;
+        this.itemService = itemService;
     }
 
 
@@ -56,7 +56,7 @@ public class GlobalPerkListener implements Listener {
         String worldName = player.getWorld().getName().toLowerCase();
         if (worldRegistry.DISABLED_WORLDS.contains(worldName) || worldName.startsWith(worldRegistry.BUNKER_PREFIX)) {
             PlayerInventory inventory = player.getInventory();
-            List<PerkType> collectedPerks = ItemUtil.itemsToPerks(inventory); // Get perks, and removes perk cards
+            List<PerkType> collectedPerks = itemService.itemsToPerks(inventory); // Get perks, and removes perk cards
 
             if (collectedPerks.isEmpty()) {
                 return; // Player extracted no perks
@@ -106,7 +106,7 @@ public class GlobalPerkListener implements Listener {
             int stars = equippedPerks.get(droppedType);
 
             // Convert to item and put in drops
-            ItemStack perkItem = ItemUtil.getPerkCard(droppedType);
+            ItemStack perkItem = itemService.getPerkCard(droppedType);
             List<ItemStack> drops = event.getDrops();
 
             if (droppedType.isStarPerk()) {

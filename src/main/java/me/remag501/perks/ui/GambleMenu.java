@@ -1,7 +1,7 @@
 //package me.remag501.perks.ui;
 //
 //import me.remag501.perks.manager.PerkManager;
-//import me.remag501.perks.util.ItemUtil;
+//import me.remag501.perks.service.ItemUtil;
 //import org.bukkit.Bukkit;
 //import org.bukkit.Material;
 //import org.bukkit.entity.Player;

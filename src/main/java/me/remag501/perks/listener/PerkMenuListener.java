@@ -7,9 +7,10 @@ import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.ui.PerkMenu;
 //import me.remag501.perks.ui.ScrapMenu;
-import me.remag501.perks.util.ItemUtil;
+import me.remag501.perks.service.ItemService;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,13 +21,13 @@ import org.bukkit.inventory.ItemStack;
 public class PerkMenuListener implements Listener {
 
     private final PerkManager perkManager;
-    private final PerkRegistry perkRegistry;
     private final PerkMenu perkMenu;
+    private final ItemService itemService;
 
-    public PerkMenuListener(PerkManager perkManager, PerkRegistry perkRegistry, PerkMenu perkMenu) {
+    public PerkMenuListener(PerkManager perkManager, PerkMenu perkMenu, ItemService itemService) {
         this.perkManager = perkManager;
-        this.perkRegistry = perkRegistry;
         this.perkMenu = perkMenu;
+        this.itemService = itemService;
     }
 
     @EventHandler
@@ -56,21 +57,21 @@ public class PerkMenuListener implements Listener {
             player.sendMessage("§cGamble menu not yet implemented!");
             return;
         } else if (name.equals("§a§lNEXT")) {
-            perkMenu.open(player, currentPage + 1, ItemUtil.hiddenItem(clicked));
+            perkMenu.open(player, currentPage + 1, itemService.hiddenItem(clicked));
             return;
         } else if (name.equals("§c§lBACK")) {
-            perkMenu.open(player, currentPage - 1, ItemUtil.hiddenItem(clicked));
+            perkMenu.open(player, currentPage - 1, itemService.hiddenItem(clicked));
             return;
         }
 
         // 3. Handle Perk Interaction
-        String perkId = ItemUtil.getPerkID(clicked);
+        String perkId = itemService.getPerkID(clicked);
 
         if (perkId != null) {
             try {
                 // Direct conversion from ID to Enum
                 PerkType type = PerkType.valueOf(perkId.toUpperCase());
-                boolean isHidden = ItemUtil.hiddenItem(clicked);
+                boolean isHidden = itemService.hiddenItem(clicked);
 
                 if (event.getClick() == ClickType.LEFT) {
                     if (profile.equipPerk(type, player)) {

@@ -6,7 +6,7 @@ import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.perk.impl.Bloodied;
 import me.remag501.perks.perk.impl.Flash;
 import me.remag501.perks.perk.impl.Kangaroo;
-import me.remag501.perks.util.ItemUtil;
+import me.remag501.perks.service.ItemService;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -23,9 +23,11 @@ public class PerkRegistry {
     private final Map<PerkType, Perk> perks;
     private final Map<PerkType, ItemStack> perkItems;
     private final Plugin plugin; // Used to register listener
+    private final ItemService itemService;
 
-    public PerkRegistry(Plugin plugin) {
+    public PerkRegistry(Plugin plugin, ItemService itemService) {
         this.plugin = plugin;
+        this.itemService = itemService;
         this.perks = new HashMap<>();
         this.perkItems = new HashMap<>();
     }
@@ -40,7 +42,7 @@ public class PerkRegistry {
     private void registerPerk(PerkType type, Perk perk) {
         perks.put(type, perk);
 
-        ItemStack item = ItemUtil.createPerkItem(
+        ItemStack item = itemService.createPerkItem(
                 type.getCustomModelData(),
                 type.getDisplayName(),
                 type.getId(),
