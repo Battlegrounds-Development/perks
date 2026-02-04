@@ -89,8 +89,8 @@ public class Perks extends JavaPlugin {
         }
 
         if (disabledWorlds != null) {
-            worldRegistry.DROP_WORLDS.clear();
-            worldRegistry.DROP_WORLDS.addAll(disabledWorlds);
+            worldRegistry.DISABLED_WORLDS.clear();
+            worldRegistry.DISABLED_WORLDS.addAll(disabledWorlds);
             getLogger().info("Loaded " + disabledWorlds.size() + " disabled worlds");
         }
 

@@ -64,34 +64,38 @@ public class PerkMenuListener implements Listener {
         }
 
         // 3. Handle Perk Interaction
-        for (PerkType type : PerkType.values()) {
-            if (ItemUtil.areItemsEqual(clicked, perkRegistry.getPerkItem(type))) {
+        String perkId = ItemUtil.getPerkID(clicked);
+
+        if (perkId != null) {
+            try {
+                // Direct conversion from ID to Enum
+                PerkType type = PerkType.valueOf(perkId.toUpperCase());
                 boolean isHidden = ItemUtil.hiddenItem(clicked);
 
                 if (event.getClick() == ClickType.LEFT) {
-                    // Left click: Equip perk
                     if (profile.equipPerk(type, player)) {
                         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 10, 2);
                     } else {
                         player.playSound(player, Sound.ENTITY_VILLAGER_NO, 10, 1);
                     }
                 } else if (event.getClick() == ClickType.RIGHT) {
-                    // Right click: Unequip perk (or open scrap menu if not equipped)
                     if (profile.unequipPerk(type, player)) {
                         player.playSound(player, Sound.UI_BUTTON_CLICK, 10, 2);
                     } else {
-                        // Perk not equipped, open scrap menu
                         profile.setPendingScrap(type);
-                        // ScrapMenu.open(player);
                         player.sendMessage("§cScrap menu not yet implemented!");
-                        return; // Don't refresh PerkMenu yet
+                        return;
                     }
                 }
 
                 // Refresh the current UI
                 perkMenu.open(player, currentPage, isHidden);
-                break;
+
+            } catch (IllegalArgumentException e) {
+                // This would only happen if the ID in the NBT doesn't match an Enum value
+                player.sendMessage("§cError: Invalid Perk Data.");
             }
         }
+
     }
 }
