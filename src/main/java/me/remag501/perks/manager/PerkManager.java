@@ -3,8 +3,6 @@ package me.remag501.perks.manager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.registry.PerkRegistry;
-import me.remag501.perks.util.ConfigUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -19,10 +17,10 @@ public class PerkManager {
 
     private final Map<UUID, PerkProfile> profiles;
     private final Plugin plugin; // Used for .logger
-    private final ConfigUtil perkConfig;
+    private final ConfigManager perkConfig;
     private final PerkRegistry perkRegistry;
 
-    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, ConfigUtil perkConfig) {
+    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, ConfigManager perkConfig) {
         this.plugin = plugin;
         this.perkRegistry = perkRegistry;
         this.perkConfig = perkConfig;
@@ -118,8 +116,8 @@ public class PerkManager {
      * Save all player perks to config.
      */
     public void saveAllPerks() {
-        ConfigUtil perkConfigUtil = new ConfigUtil(plugin, "perks.yml");
-        FileConfiguration config = perkConfigUtil.getConfig();
+        ConfigManager perkConfigManager = new ConfigManager(plugin, "perks.yml");
+        FileConfiguration config = perkConfigManager.getConfig();
 
         for (Map.Entry<UUID, PerkProfile> entry : profiles.entrySet()) {
             UUID playerUUID = entry.getKey();
@@ -127,7 +125,7 @@ public class PerkManager {
             saveProfileToConfig(config, playerUUID, profile);
         }
 
-        perkConfigUtil.save();
+        perkConfigManager.save();
     }
 
     /**
@@ -139,11 +137,11 @@ public class PerkManager {
             return;
         }
 
-        ConfigUtil perkConfigUtil = new ConfigUtil(plugin, "perks.yml");
-        FileConfiguration config = perkConfigUtil.getConfig();
+        ConfigManager perkConfigManager = new ConfigManager(plugin, "perks.yml");
+        FileConfiguration config = perkConfigManager.getConfig();
 
         saveProfileToConfig(config, playerUUID, profile);
-        perkConfigUtil.save();
+        perkConfigManager.save();
     }
 
     /**

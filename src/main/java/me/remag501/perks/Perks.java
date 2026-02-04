@@ -6,11 +6,10 @@ import me.remag501.perks.listener.PerkMenuListener;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.ui.PerkMenu;
-import me.remag501.perks.util.ConfigUtil;
+import me.remag501.perks.manager.ConfigManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 
@@ -31,8 +30,8 @@ public class Perks extends JavaPlugin {
         // 2. Initialize singletons in correct order
 
         PerkRegistry perkRegistry = new PerkRegistry(this);
-        ConfigUtil configUtil = new ConfigUtil(this, "perks.yml");
-        perkManager = new PerkManager(this, perkRegistry, configUtil);
+        ConfigManager configManager = new ConfigManager(this, "perks.yml");
+        perkManager = new PerkManager(this, perkRegistry, configManager);
 
         perkRegistry.init(perkManager);
 
@@ -95,7 +94,7 @@ public class Perks extends JavaPlugin {
         }
 
         // Ensure perks.yml exists (will be created by ConfigUtil if needed)
-        ConfigUtil perkConfig = new ConfigUtil(this, "perks.yml");
+        ConfigManager perkConfig = new ConfigManager(this, "perks.yml");
         perkConfig.save();
     }
 

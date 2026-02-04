@@ -1,4 +1,4 @@
-package me.remag501.perks.util;
+package me.remag501.perks.manager;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -6,11 +6,11 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 
-public class ConfigUtil {
+public class ConfigManager {
     private File file;
     private FileConfiguration config;
 
-    public ConfigUtil(Plugin plugin, String path) {
+    public ConfigManager(Plugin plugin, String path) {
         this.file = new File(plugin.getDataFolder(), path);
 
         // If the file does not exist, save the default resource
@@ -22,7 +22,7 @@ public class ConfigUtil {
         this.config = YamlConfiguration.loadConfiguration(this.file);
     }
 
-    public ConfigUtil(String path) {
+    public ConfigManager(String path) {
         this.file = new File(path);
         this.config = YamlConfiguration.loadConfiguration(this.file);
     }
