@@ -1,19 +1,25 @@
 package me.remag501.perks;
 
 import me.remag501.perks.command.PerksCommand;
+import me.remag501.perks.listener.GambleListener;
 import me.remag501.perks.listener.GlobalPerkListener;
 import me.remag501.perks.listener.PerkMenuListener;
+import me.remag501.perks.listener.ScrapListener;
+import me.remag501.perks.manager.GambleManager;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.registry.WorldRegistry;
 import me.remag501.perks.service.ItemService;
 import me.remag501.perks.service.NamespaceService;
+import me.remag501.perks.ui.GambleMenu;
 import me.remag501.perks.ui.PerkMenu;
 import me.remag501.perks.manager.ConfigManager;
+import me.remag501.perks.ui.ScrapMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.awt.*;
 import java.util.List;
 
 
@@ -38,14 +44,18 @@ public class Perks extends JavaPlugin {
         PerkRegistry perkRegistry = new PerkRegistry(this, itemService);
         ConfigManager configManager = new ConfigManager(this, "perks.yml");
         perkManager = new PerkManager(this, perkRegistry, worldRegistry, configManager);
-
         perkRegistry.init(perkManager);
 
+        GambleMenu gambleMenu = new GambleMenu(perkManager, itemService);
+        GambleManager gambleManager = new GambleManager(this, perkManager, perkRegistry, gambleMenu);
         PerkMenu perkMenu = new PerkMenu(perkManager, perkRegistry, itemService);
+        ScrapMenu scrapMenu = new ScrapMenu();
 
         // 3. Register event listeners
         getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry, worldRegistry, itemService), this);
-        getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkMenu, itemService), this);
+        getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkMenu, gambleMenu, itemService, scrapMenu), this);
+        getServer().getPluginManager().registerEvents(new GambleListener(gambleManager, perkMenu), this);
+        getServer().getPluginManager().registerEvents(new ScrapListener(perkManager, perkRegistry, perkMenu), this);
 
         // 4. Register commands
         this.getCommand("perks").setExecutor(new PerksCommand(this, perkManager, perkMenu, itemService));

@@ -90,7 +90,7 @@ public class PerkMenu {
         // 4. Pagination Buttons
         int totalPages = hiddenMenu ?
                 (int) Math.ceil(PerkType.values().length / 14.0) :
-                (int) Math.ceil((PerkType.values().length - getPerksByRarity(4).size()) / 14.0);
+                (int) Math.ceil((PerkType.values().length - perkRegistry.getPerksByRarity(4).size()) / 14.0);
 
         if (page >= totalPages - 1) {
             inv.setItem(53, itemService.createItem(
@@ -129,16 +129,6 @@ public class PerkMenu {
         }
 
         player.openInventory(inv);
-    }
-
-    private List<PerkType> getPerksByRarity(int rarity) {
-        List<PerkType> perks = new ArrayList<>();
-        for (PerkType type : PerkType.values()) {
-            if (type.getRarity() == rarity) {
-                perks.add(type);
-            }
-        }
-        return perks;
     }
 
     private List<PerkType> perkTypesByPage(int page) {

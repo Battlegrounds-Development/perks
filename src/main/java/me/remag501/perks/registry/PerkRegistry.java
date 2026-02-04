@@ -11,7 +11,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,5 +62,15 @@ public class PerkRegistry {
 
     public ItemStack getPerkItem(PerkType type) {
         return perkItems.get(type);
+    }
+
+    public List<PerkType> getPerksByRarity(int rarity) {
+        List<PerkType> perks = new ArrayList<>();
+        for (PerkType type : PerkType.values()) {
+            if (type.getRarity() == rarity) {
+                perks.add(type);
+            }
+        }
+        return perks;
     }
 }

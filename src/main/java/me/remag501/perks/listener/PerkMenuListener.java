@@ -5,8 +5,9 @@ import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 //import me.remag501.perks.ui.GambleMenu;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.ui.GambleMenu;
 import me.remag501.perks.ui.PerkMenu;
-//import me.remag501.perks.ui.ScrapMenu;
+import me.remag501.perks.ui.ScrapMenu;
 import me.remag501.perks.service.ItemService;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -22,11 +23,15 @@ public class PerkMenuListener implements Listener {
 
     private final PerkManager perkManager;
     private final PerkMenu perkMenu;
+    private final GambleMenu gambleMenu;
+    private final ScrapMenu scrapMenu;
     private final ItemService itemService;
 
-    public PerkMenuListener(PerkManager perkManager, PerkMenu perkMenu, ItemService itemService) {
+    public PerkMenuListener(PerkManager perkManager, PerkMenu perkMenu, GambleMenu gambleMenu, ItemService itemService, ScrapMenu scrapMenu) {
         this.perkManager = perkManager;
         this.perkMenu = perkMenu;
+        this.gambleMenu = gambleMenu;
+        this.scrapMenu = scrapMenu;
         this.itemService = itemService;
     }
 
@@ -53,8 +58,7 @@ public class PerkMenuListener implements Listener {
         }
 
         if (name.equals("§6§lOBTAIN PERKS")) {
-            // GambleMenu.open(player);
-            player.sendMessage("§cGamble menu not yet implemented!");
+            gambleMenu.open(player);
             return;
         } else if (name.equals("§a§lNEXT")) {
             perkMenu.open(player, currentPage + 1, itemService.hiddenItem(clicked));
@@ -84,7 +88,7 @@ public class PerkMenuListener implements Listener {
                         player.playSound(player, Sound.UI_BUTTON_CLICK, 10, 2);
                     } else {
                         profile.setPendingScrap(type);
-                        player.sendMessage("§cScrap menu not yet implemented!");
+                        scrapMenu.open(player);
                         return;
                     }
                 }
