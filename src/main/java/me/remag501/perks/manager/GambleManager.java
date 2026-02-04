@@ -47,9 +47,16 @@ public class GambleManager {
         PerkType rolledType = possible.get((int) (Math.random() * possible.size()));
 
         // Process Result
-        perkProfile.addOwnedPerk(rolledType);
+        if (perkProfile.addOwnedPerk(rolledType)) {
+            player.sendMessage("§6§lPERKS §8» §7You obtained: " + perkRegistry.getPerkItem(rolledType).getItemMeta().getDisplayName());
+        } else {
+            int points = perkProfile.scrapPerk(rolledType);
+            perkProfile.addOwnedPerk(rolledType);
+            player.sendMessage("§6§lPERKS §8» §7You already had 3 of this perk. Auto-scrapped one for " + points + " points.");
+        }
+
         triggerTotemAnimation(player, rolledType);
-        player.sendMessage("§6§lPERKS §8» §7You obtained: " + perkRegistry.getPerkItem(rolledType).getItemMeta().getDisplayName());
+
     }
 
     private void triggerTotemAnimation(Player player, PerkType perkType) {
