@@ -309,7 +309,7 @@ public class PerkProfile {
     }
 
     private int calculateScrapValue(PerkType type) {
-        int rarity = ItemUtil.getRarity(type);
+        int rarity = type.getRarity();
         switch (rarity) {
             case 0: return 1;
             case 1: return 2;

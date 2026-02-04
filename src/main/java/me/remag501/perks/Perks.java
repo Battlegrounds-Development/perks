@@ -25,11 +25,11 @@ public class Perks extends JavaPlugin {
         getLogger().info("Starting Perks plugin initialization...");
 
         // 1. Load configuration first
+        worldRegistry = new WorldRegistry();
         loadConfiguration();
 
         // 2. Initialize singletons in correct order
 
-        worldRegistry = new WorldRegistry();
         PerkRegistry perkRegistry = new PerkRegistry(this);
         ConfigManager configManager = new ConfigManager(this, "perks.yml");
         perkManager = new PerkManager(this, perkRegistry, worldRegistry, configManager);

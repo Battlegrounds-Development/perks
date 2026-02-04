@@ -30,7 +30,7 @@ public class PerkMenu {
         Inventory inv = Bukkit.createInventory(null, 54, "Choose Your Perk");
 
         // 1. Load Header
-        ItemStack head = ItemUtil.createPerkSkull(player.getUniqueId(), player.getDisplayName(), player.getDisplayName());
+        ItemStack head = ItemUtil.createSkull(player.getUniqueId(), player.getDisplayName(), player.getDisplayName());
         inv.setItem(0, head);
 
         ItemStack rollButton = ItemUtil.createItem(

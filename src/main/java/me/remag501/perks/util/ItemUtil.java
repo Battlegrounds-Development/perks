@@ -2,7 +2,6 @@ package me.remag501.perks.util;
 
 import me.remag501.perks.perk.PerkType;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -13,141 +12,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.profile.PlayerProfile;
-import org.bukkit.profile.PlayerTextures;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 
 public class ItemUtil {
 
-    // Top of ItemUtil
-    public static final NamespacedKey PERK_ID_KEY = new NamespacedKey(
-            Bukkit.getPluginManager().getPlugin("Perks"), "unique_id"
-    );
-
-    /*
-
-              _____                                _           _
-             |  __ \                              | |         | |
-             | |  | | ___ _ __  _ __ ___  ___ __ _| |_ ___  __| |
-             | |  | |/ _ \ '_ \| '__/ _ \/ __/ _` | __/ _ \/ _` |
-             | |__| |  __/ |_) | | |  __/ (_| (_| | ||  __/ (_| |
-             |_____/ \___| .__/|_|  \___|\___\__,_|\__\___|\__,_|
-                         | |
-                         |_|
-
-     Scheduled for removal soon
-
-     */
-    public static ItemStack createPerkItem(Material type, String name, String id, int rarity, String... lores) {
-        String rarityStr;
-        switch (rarity) {
-            case 0:
-                rarityStr = "§f§lCommon";
-                break;
-            case 1:
-                rarityStr = "§a§lUncommon";
-                break;
-            case 2:
-                rarityStr = "§1§lRare";
-                break;
-            case 3:
-                rarityStr = "§6§lLegendary";
-                break;
-            case 4:
-                rarityStr = "§8§lHidden";
-                break;
-            default:
-                rarityStr = "§7Unknown";
-                break;
-        }
-        // Prepend the lores with rarityStr
-        ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
-        loreList.add(0, rarityStr);
-        ItemStack item = ItemUtil.createItem(type, name, id, false, loreList.toArray(new String[loreList.size()]));
-        // Add tag for hidden rarity
-        if (rarityStr.equals("§8§lHidden")) {
-            ItemMeta meta = item.getItemMeta();
-            NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "rarity");
-            PersistentDataContainer data = meta.getPersistentDataContainer();
-            data.set(key, PersistentDataType.STRING, "HIDDEN");
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-
-    // Add identifier to this function arguments
-    public static ItemStack createItem(Material type, String name, String id, boolean enchanted, String... lores) {
-        // Function to make creating items easier
-
-        // Example uses an IRON_SWORD as a placeholder item
-        ItemStack item = new ItemStack(type);
-        ItemMeta meta = item.getItemMeta();
-
-        // Set the item's name and lore to describe the perk
-        if (meta != null) {
-            // Add lore to the item
-            meta.setDisplayName(name);
-            ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
-            meta.setLore(loreList);
-            // Add unique identifier to the item
-            if (id != null) {
-                NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
-                PersistentDataContainer data = meta.getPersistentDataContainer();
-                data.set(key, PersistentDataType.STRING, id);
-            }
-            // Make item look enchanted
-            if (enchanted) {
-                meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            }
-            // Apply meta data to item
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /*
-
-              _    _           _       _           _
-             | |  | |         | |     | |         | |
-             | |  | |_ __   __| | __ _| |_ ___  __| |
-             | |  | | '_ \ / _` |/ _` | __/ _ \/ _` |
-             | |__| | |_) | (_| | (_| | ||  __/ (_| |
-              \____/| .__/ \__,_|\__,_|\__\___|\__,_|
-                    | |
-                    |_|
-
-     Soon to replace old functions without custom model data
-
-     */
-
+    // Centralized Keys
+    public static final NamespacedKey PERK_ID_KEY = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
+    public static final NamespacedKey RARITY_KEY = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "rarity");
 
     public static ItemStack createPerkItem(int cmd, String name, String id, int rarity, String... lores) {
-        String rarityStr;
-        switch (rarity) {
-            case 0:
-                rarityStr = "§f§lCommon";
-                break;
-            case 1:
-                rarityStr = "§a§lUncommon";
-                break;
-            case 2:
-                rarityStr = "§1§lRare";
-                break;
-            case 3:
-                rarityStr = "§6§lLegendary";
-                break;
-            case 4:
-                rarityStr = "§8§lHidden";
-                break;
-            default:
-                rarityStr = "§7Unknown";
-                break;
-        }
+
+        String rarityStr = switch (rarity) {
+            case 0 -> "§f§lCommon";
+            case 1 -> "§a§lUncommon";
+            case 2 -> "§1§lRare";
+            case 3 -> "§6§lLegendary";
+            case 4 -> "§8§lHidden";
+            default -> "§7Unknown";
+        };
+
         // Prepend the lores with rarity Str
         ArrayList<String> loreList = new ArrayList<>(Arrays.asList(lores));
         loreList.replaceAll(s -> "§8• §f" + s);
@@ -157,54 +41,13 @@ public class ItemUtil {
         // Add tag for hidden rarity
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
-            NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "rarity");
             PersistentDataContainer data = meta.getPersistentDataContainer();
-            data.set(key, PersistentDataType.STRING, "HIDDEN");
+            data.set(RARITY_KEY, PersistentDataType.STRING, "HIDDEN");
             item.setItemMeta(meta);
         }
         return item;
     }
 
-    public static int getRarity(PerkType perkType) {
-        return perkType.getRarity();
-    }
-
-    public static ItemStack createPerkSkull(String texture, String name, String id, int rarity, String... lores) {
-        ItemStack head = createPerkItem(Material.PLAYER_HEAD, name, id, rarity, lores);
-        SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
-        // Set the custom texture
-        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID().toString());
-        PlayerTextures playerTexture = profile.getTextures();
-        try {
-            URL url = new URL(texture);
-            playerTexture.setSkin(url);
-            profile.setTextures(playerTexture);
-            skullMeta.setOwnerProfile(profile);
-        } catch (MalformedURLException e) {
-            Bukkit.getLogger().severe("Invalid skin URL: " + texture);
-            e.printStackTrace();
-        }
-        head.setItemMeta(skullMeta);
-
-        return head;
-    }
-
-    public static ItemStack createPerkSkull(UUID uuid, String name, String id, String... lores) {
-        ItemStack head = createPerkItem(Material.PLAYER_HEAD, name, id, 0, lores);
-        SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
-
-        // Remove the rarity lore
-        skullMeta.setLore(new ArrayList<>());
-
-        // Set the custom player texture using UUID
-        skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
-
-        head.setItemMeta(skullMeta);
-
-        return head;
-    }
-
-    // Add identifier to this function arguments
     public static ItemStack createItem(Material type, String name, String id, int cmd, boolean enchanted, String... lores) {
         // Function to make creating items easier
 
@@ -221,9 +64,8 @@ public class ItemUtil {
             meta.setLore(loreList);
             // Add unique identifier to the item
             if (id != null) {
-                NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
                 PersistentDataContainer data = meta.getPersistentDataContainer();
-                data.set(key, PersistentDataType.STRING, id);
+                data.set(PERK_ID_KEY, PersistentDataType.STRING, id);
             }
             // Make item look enchanted
             if (enchanted) {
@@ -236,32 +78,25 @@ public class ItemUtil {
         return item;
     }
 
-//    public static ItemStack getPerkCard(PerkType perkType) {
-//        // Clone the original item to avoid modifying the base item
-//        ItemStack item = perkType.getItem();
-//        ItemStack perkCard = item.clone();
-//        perkCard.setType(Material.PAPER);
-//        ItemMeta meta = perkCard.getItemMeta();
-//
-//        if (meta != null) {
-//            // Get the rarity color from previous item
-//            ItemMeta itemMeta = item.getItemMeta();
-//            String firstLine = itemMeta.getLore().get(0);
-//            char colorCode = firstLine.charAt(1);
-//            // Update the display name to represent the card
-//            meta.setDisplayName("§" + colorCode + "§l" + itemMeta.getDisplayName());
-//            meta.setCustomModelData(perkType.getCustomModelData());
-//
-//            // Add lore for clarity
-//            List<String> lore = new ArrayList<>();
-//            lore.add(ChatColor.RED + "You will obtain this perk when you extract!");
-//            meta.setLore(lore);
-//
-//            perkCard.setItemMeta(meta);
-//        }
-//
-//        return perkCard;
-//    }
+    public static ItemStack createItem(Material type, String name, String id, boolean enchanted, String... lores) {
+        return createItem(type, name, id, 0, enchanted, lores);
+    }
+
+
+    public static ItemStack createSkull(UUID uuid, String name, String id, String... lores) {
+        ItemStack head = createItem(Material.PLAYER_HEAD, name, id,false, lores);
+        SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+
+        // Remove the rarity lore
+        skullMeta.setLore(new ArrayList<>());
+
+        // Set the custom player texture using UUID
+        skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+
+        head.setItemMeta(skullMeta);
+
+        return head;
+    }
 
     public static ItemStack getPerkCard(PerkType perkType) {
         ItemStack perkCard = new ItemStack(Material.PAPER);
@@ -284,12 +119,12 @@ public class ItemUtil {
 
     // Helper to replace your 'char colorCode' logic
     private static String getRarityColor(int rarity) {
-        switch (rarity) {
-            case 1: return "§a"; // Uncommon
-            case 2: return "§b"; // Rare
-            case 3: return "§6"; // Legendary
-            default: return "§f"; // Common
-        }
+        return switch (rarity) {
+            case 1 -> "§a"; // Uncommon
+            case 2 -> "§b"; // Rare
+            case 3 -> "§6"; // Legendary
+            default -> "§f"; // Common
+        };
     }
 
     public static List<PerkType> itemsToPerks(PlayerInventory inventory) {
@@ -308,13 +143,6 @@ public class ItemUtil {
         }
         return foundPerks;
     }
-
-//    public static String getPerkID(ItemStack item) {
-//        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
-//        NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
-//        String id = container.get(key, PersistentDataType.STRING);
-//        return id;
-//    }
 
     // Then in your getPerkID method:
     public static String getPerkID(ItemStack item) {
@@ -340,17 +168,14 @@ public class ItemUtil {
             return false; // One of the items has no metadata, so they're not equal
         }
 
-        // Create a NamespacedKey for your custom identifier
-        NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
-
         // Get the PersistentDataContainers from both items
         PersistentDataContainer data1 = meta1.getPersistentDataContainer();
         PersistentDataContainer data2 = meta2.getPersistentDataContainer();
 
         // Check if both items have the custom key in their PersistentDataContainer
-        if (data1.has(key, PersistentDataType.STRING) && data2.has(key, PersistentDataType.STRING)) {
-            String id1 = data1.get(key, PersistentDataType.STRING);
-            String id2 = data2.get(key, PersistentDataType.STRING);
+        if (data1.has(PERK_ID_KEY, PersistentDataType.STRING) && data2.has(PERK_ID_KEY, PersistentDataType.STRING)) {
+            String id1 = data1.get(PERK_ID_KEY, PersistentDataType.STRING);
+            String id2 = data2.get(PERK_ID_KEY, PersistentDataType.STRING);
 
             // Compare the unique IDs
             return id1 != null && id1.equals(id2);
@@ -362,8 +187,7 @@ public class ItemUtil {
     // Function to check if ItemStack contains hidden rarity key
     public static boolean hiddenItem(ItemStack item) {
         PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
-        NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "rarity");
-        String id = container.get(key, PersistentDataType.STRING);
+        String id = container.get(RARITY_KEY, PersistentDataType.STRING);
         if (id == null)
             return false; // No custom data is present or the custom data isn't a hidden rarity key
         return id.equals("HIDDEN");
@@ -386,9 +210,8 @@ public class ItemUtil {
         if (count == 0) {
             item.setType(Material.BEDROCK);
             // Update meta data identifier
-            NamespacedKey key = new NamespacedKey(Bukkit.getPluginManager().getPlugin("Perks"), "unique_id");
             PersistentDataContainer data = meta.getPersistentDataContainer();
-            data.remove(key);
+            data.remove(PERK_ID_KEY);
         } else {
             // Update the item's count in lore
             List<String> loreList = meta.getLore();
