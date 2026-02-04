@@ -3,14 +3,13 @@ package me.remag501.perks.model;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.registry.WorldRegistry;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static me.remag501.perks.util.WorldUtil.BUNKER_PREFIX;
-import static me.remag501.perks.util.WorldUtil.DISABLED_WORLDS;
 
 /**
  * Simplified PerkProfile - no PerkInstance dependency.
@@ -25,9 +24,11 @@ public class PerkProfile {
     private PerkType pendingScrap;
 
     private final PerkRegistry perkRegistry;
+    private final WorldRegistry worldRegistry;
 
-    public PerkProfile(PerkRegistry perkRegistry, UUID playerUUID) {
+    public PerkProfile(PerkRegistry perkRegistry, WorldRegistry worldRegistry, UUID playerUUID) {
         this.perkRegistry = perkRegistry;
+        this.worldRegistry = worldRegistry;
         this.playerUUID = playerUUID;
         this.ownedPerks = new HashMap<>();
         this.equippedPerks = new HashMap<>();
@@ -345,7 +346,7 @@ public class PerkProfile {
         if (player == null) return false;
 
         String worldName = player.getWorld().getName();
-        return !DISABLED_WORLDS.contains(worldName) && !worldName.startsWith(BUNKER_PREFIX);
+        return !worldRegistry.DISABLED_WORLDS.contains(worldName) && !worldName.startsWith(worldRegistry.BUNKER_PREFIX);
     }
 
 }

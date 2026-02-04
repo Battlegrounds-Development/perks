@@ -3,6 +3,7 @@ package me.remag501.perks.manager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.registry.WorldRegistry;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -19,10 +20,12 @@ public class PerkManager {
     private final Plugin plugin; // Used for .logger
     private final ConfigManager perkConfig;
     private final PerkRegistry perkRegistry;
+    private final WorldRegistry worldRegistry;
 
-    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, ConfigManager perkConfig) {
+    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ConfigManager perkConfig) {
         this.plugin = plugin;
         this.perkRegistry = perkRegistry;
+        this.worldRegistry = worldRegistry;
         this.perkConfig = perkConfig;
         this.profiles = new HashMap<>();
     }
@@ -32,7 +35,7 @@ public class PerkManager {
      */
     public PerkProfile getProfile(UUID playerUUID) {
         // k represents the playerUUID being passed into the map
-        return profiles.computeIfAbsent(playerUUID, k -> new PerkProfile(this.perkRegistry, k));
+        return profiles.computeIfAbsent(playerUUID, k -> new PerkProfile(this.perkRegistry, this.worldRegistry, k));
     }
 
     /**

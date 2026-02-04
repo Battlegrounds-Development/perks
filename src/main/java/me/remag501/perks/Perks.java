@@ -5,6 +5,7 @@ import me.remag501.perks.listener.GlobalPerkListener;
 import me.remag501.perks.listener.PerkMenuListener;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.registry.WorldRegistry;
 import me.remag501.perks.ui.PerkMenu;
 import me.remag501.perks.manager.ConfigManager;
 import org.bukkit.Bukkit;
@@ -13,12 +14,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-import static me.remag501.perks.util.WorldUtil.DISABLED_WORLDS;
-import static me.remag501.perks.util.WorldUtil.DROP_WORLDS;
 
 public class Perks extends JavaPlugin {
 
     private PerkManager perkManager;
+    private WorldRegistry worldRegistry;
 
     @Override
     public void onEnable() {
@@ -29,16 +29,17 @@ public class Perks extends JavaPlugin {
 
         // 2. Initialize singletons in correct order
 
+        worldRegistry = new WorldRegistry();
         PerkRegistry perkRegistry = new PerkRegistry(this);
         ConfigManager configManager = new ConfigManager(this, "perks.yml");
-        perkManager = new PerkManager(this, perkRegistry, configManager);
+        perkManager = new PerkManager(this, perkRegistry, worldRegistry, configManager);
 
         perkRegistry.init(perkManager);
 
         PerkMenu perkMenu = new PerkMenu(perkManager, perkRegistry);
 
         // 3. Register event listeners
-        getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry), this);
+        getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry, worldRegistry), this);
         getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkRegistry, perkMenu), this);
 
         // 4. Register commands
@@ -82,14 +83,14 @@ public class Perks extends JavaPlugin {
         List<String> disabledWorlds = config.getStringList("disabled-worlds");
 
         if (dropWorlds != null) {
-            DROP_WORLDS.clear();
-            DROP_WORLDS.addAll(dropWorlds);
+            worldRegistry.DROP_WORLDS.clear();
+            worldRegistry.DROP_WORLDS.addAll(dropWorlds);
             getLogger().info("Loaded " + dropWorlds.size() + " drop worlds");
         }
 
         if (disabledWorlds != null) {
-            DISABLED_WORLDS.clear();
-            DISABLED_WORLDS.addAll(disabledWorlds);
+            worldRegistry.DROP_WORLDS.clear();
+            worldRegistry.DROP_WORLDS.addAll(disabledWorlds);
             getLogger().info("Loaded " + disabledWorlds.size() + " disabled worlds");
         }
 

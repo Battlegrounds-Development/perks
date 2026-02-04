@@ -4,6 +4,7 @@ import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.registry.PerkRegistry;
+import me.remag501.perks.registry.WorldRegistry;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,16 +19,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static me.remag501.perks.util.WorldUtil.*;
+import static me.remag501.perks.registry.WorldRegistry.*;
 
 public class GlobalPerkListener implements Listener {
 
     private final PerkManager perkManager;
     private final PerkRegistry perkRegistry;
+    private final WorldRegistry worldRegistry;
 
-    public GlobalPerkListener(PerkManager perkManager, PerkRegistry perkRegistry) {
+    public GlobalPerkListener(PerkManager perkManager, PerkRegistry perkRegistry, WorldRegistry worldRegistry) {
         this.perkManager = perkManager;
         this.perkRegistry = perkRegistry;
+        this.worldRegistry = worldRegistry;
     }
 
 
@@ -35,7 +38,7 @@ public class GlobalPerkListener implements Listener {
         String newWorld = player.getWorld().getName().toLowerCase();
 
         // Check if the world allows perks
-        if (DISABLED_WORLDS.contains(newWorld) || newWorld.startsWith(BUNKER_PREFIX)) {
+        if (worldRegistry.DISABLED_WORLDS.contains(newWorld) || newWorld.startsWith(worldRegistry.BUNKER_PREFIX)) {
             // Disable player's perks
             disablePlayerPerks(player);
         } else {
@@ -51,7 +54,7 @@ public class GlobalPerkListener implements Listener {
 
         // Convert perk cards into player perks
         String worldName = player.getWorld().getName().toLowerCase();
-        if (DISABLED_WORLDS.contains(worldName) || worldName.startsWith(BUNKER_PREFIX)) {
+        if (worldRegistry.DISABLED_WORLDS.contains(worldName) || worldName.startsWith(worldRegistry.BUNKER_PREFIX)) {
             PlayerInventory inventory = player.getInventory();
             List<PerkType> collectedPerks = ItemUtil.itemsToPerks(inventory); // Get perks, and removes perk cards
 
@@ -82,12 +85,12 @@ public class GlobalPerkListener implements Listener {
         Player player = event.getEntity();
         String worldName = player.getWorld().getName();
 
-        if (!DROP_WORLDS.contains(worldName)) {
+        if (!worldRegistry.DROP_WORLDS.contains(worldName)) {
             // Player is not in a drop perk world so they keep it
             return;
         }
 
-        if (!DISABLED_WORLDS.contains(worldName)) {
+        if (!worldRegistry.DISABLED_WORLDS.contains(worldName)) {
             // Player died in region where they lose perk
             PerkProfile profile = perkManager.getProfile(player.getUniqueId());
             Map<PerkType, Integer> equippedPerks = profile.getEquippedPerks();
