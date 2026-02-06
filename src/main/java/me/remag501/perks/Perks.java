@@ -44,12 +44,12 @@ public class Perks extends JavaPlugin {
 
         // 3. Initialize singletons in correct order
 
-        NamespaceService namespaceService = new NamespaceService(this);
+        NamespaceService namespaceService = new NamespaceService(this); // Needed to reference namespace
         ItemService itemService = new ItemService(namespaceService);
 
-        PerkRegistry perkRegistry = new PerkRegistry(this, itemService);
-        ConfigManager configManager = new ConfigManager(this, "perks.yml");
-        perkManager = new PerkManager(this, perkRegistry, worldRegistry, configManager);
+        PerkRegistry perkRegistry = new PerkRegistry(taskHelper, itemService);
+        ConfigManager configManager = new ConfigManager(this, "perks.yml"); // Access plugin's folder config
+        perkManager = new PerkManager(getLogger(), perkRegistry, worldRegistry, configManager);
         perkRegistry.init(perkManager);
 
         GambleMenu gambleMenu = new GambleMenu(perkManager, itemService);

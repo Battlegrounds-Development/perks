@@ -73,7 +73,7 @@ public class ItemService {
             }
             // Make item look enchanted
             if (enchanted) {
-                meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
+                meta.addEnchant(Enchantment.SHARPNESS, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
             // Apply meta data to item
@@ -241,7 +241,7 @@ public class ItemService {
             boolean equipped = equippedPerks.containsKey(itemType);
 
             if (equipped) {
-                meta.addEnchant(Enchantment.LUCK, 1, true);
+                meta.addEnchant(Enchantment.LUCK_OF_THE_SEA, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 List<String> lore = meta.getLore();
                 if (lore == null) lore = new ArrayList<>();
@@ -251,7 +251,7 @@ public class ItemService {
                 }
                 meta.setLore(lore);
             } else {
-                meta.removeEnchant(Enchantment.LUCK);
+                meta.removeEnchant(Enchantment.LUCK_OF_THE_SEA);
                 List<String> lore = meta.getLore();
                 if (lore != null) {
                     lore.remove("§c§lEquipped");

@@ -10,7 +10,7 @@ import java.util.UUID;
  * Perks are stateless and shared across all players (Singleton/Flyweight pattern).
  * Only contains logic - no player-specific data.
  */
-public abstract class Perk implements Listener {
+public abstract class Perk {
 
     private final PerkType type;
 
