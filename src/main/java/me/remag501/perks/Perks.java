@@ -58,7 +58,8 @@ public class Perks extends JavaPlugin {
         ScrapMenu scrapMenu = new ScrapMenu();
 
         // 4. Register event listeners
-        getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry, worldRegistry, itemService), this);
+//        getServer().getPluginManager().registerEvents(new GlobalPerkListener(taskHelper, perkManager, perkRegistry, worldRegistry, itemService), this);
+        new GlobalPerkListener(taskHelper, perkManager, perkRegistry, worldRegistry, itemService);
 //        getServer().getPluginManager().registerEvents(new PerkMenuListener(taskHelper, perkManager, perkMenu, gambleMenu, itemService, scrapMenu), this);
         new PerkMenuListener(taskHelper, perkManager, perkMenu, gambleMenu, itemService, scrapMenu);
 //        getServer().getPluginManager().registerEvents(new GambleListener(taskHelper, gambleManager, perkMenu), this);
