@@ -77,3 +77,6 @@ permissions:
   perks.hiddenui:
     description: Allows viewing hidden perks in the UI
     default: op
+
+depend:
+  - BGSCore
