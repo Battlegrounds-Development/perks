@@ -18,15 +18,15 @@ public class PerkManager {
 
     private final Map<UUID, PerkProfile> profiles;
     private final Plugin plugin; // Used for .logger
-    private final ConfigManager perkConfig;
+    private final ConfigManager perkConfigManager;
     private final PerkRegistry perkRegistry;
     private final WorldRegistry worldRegistry;
 
-    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ConfigManager perkConfig) {
+    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ConfigManager perkConfigManager) {
         this.plugin = plugin;
         this.perkRegistry = perkRegistry;
         this.worldRegistry = worldRegistry;
-        this.perkConfig = perkConfig;
+        this.perkConfigManager = perkConfigManager;
         this.profiles = new HashMap<>();
     }
 
@@ -60,8 +60,7 @@ public class PerkManager {
         PerkProfile profile = getProfile(playerUUID);
 
         String playerID = playerUUID.toString();
-//        ConfigUtil perkConfig = new ConfigUtil(plugin, "perks.yml");
-        FileConfiguration config = perkConfig.getConfig();
+        FileConfiguration config = perkConfigManager.getConfig();
 
         List<String> equippedList = config.getStringList(playerID + "_equipped");
         List<String> ownedList = config.getStringList(playerID + "_owned");
@@ -119,7 +118,7 @@ public class PerkManager {
      * Save all player perks to config.
      */
     public void saveAllPerks() {
-        ConfigManager perkConfigManager = new ConfigManager(plugin, "perks.yml");
+
         FileConfiguration config = perkConfigManager.getConfig();
 
         for (Map.Entry<UUID, PerkProfile> entry : profiles.entrySet()) {
@@ -140,7 +139,6 @@ public class PerkManager {
             return;
         }
 
-        ConfigManager perkConfigManager = new ConfigManager(plugin, "perks.yml");
         FileConfiguration config = perkConfigManager.getConfig();
 
         saveProfileToConfig(config, playerUUID, profile);
