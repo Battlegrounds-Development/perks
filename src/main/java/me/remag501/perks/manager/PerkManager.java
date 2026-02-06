@@ -7,8 +7,10 @@ import me.remag501.perks.registry.WorldRegistry;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginLogger;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Singleton manager for all player perk profiles.
@@ -17,13 +19,13 @@ import java.util.*;
 public class PerkManager {
 
     private final Map<UUID, PerkProfile> profiles;
-    private final Plugin plugin; // Used for .logger
+    private final Logger logger; // Used for .logger
     private final ConfigManager perkConfigManager;
     private final PerkRegistry perkRegistry;
     private final WorldRegistry worldRegistry;
 
-    public PerkManager(Plugin plugin, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ConfigManager perkConfigManager) {
-        this.plugin = plugin;
+    public PerkManager(Logger logger, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ConfigManager perkConfigManager) {
+        this.logger = logger;
         this.perkRegistry = perkRegistry;
         this.worldRegistry = worldRegistry;
         this.perkConfigManager = perkConfigManager;
@@ -72,7 +74,7 @@ public class PerkManager {
                 int points = Integer.parseInt(perkPointString);
                 profile.addPerkPoints(points);
             } catch (NumberFormatException e) {
-                plugin.getLogger().warning("Invalid perk points for player " + playerUUID);
+                logger.warning("Invalid perk points for player " + playerUUID);
             }
         }
 
@@ -82,7 +84,7 @@ public class PerkManager {
                 PerkType type = PerkType.valueOf(perkId);
                 profile.addOwnedPerk(type);
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid perk type in owned perks: " + perkId);
+                logger.warning("Invalid perk type in owned perks: " + perkId);
             }
         }
 
@@ -93,7 +95,7 @@ public class PerkManager {
                 PerkType type = PerkType.valueOf(perkId);
                 starCounts.put(type, starCounts.getOrDefault(type, 0) + 1);
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid perk type in equipped perks: " + perkId);
+                logger.warning("Invalid perk type in equipped perks: " + perkId);
             }
         }
 
