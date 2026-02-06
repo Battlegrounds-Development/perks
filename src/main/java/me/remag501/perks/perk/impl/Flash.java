@@ -1,5 +1,6 @@
 package me.remag501.perks.perk.impl;
 
+import me.remag501.bgscore.api.TaskHelper;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.registry.PerkRegistry;
@@ -28,12 +29,12 @@ public class Flash extends Perk {
     // Track weakness application tasks per player
     private final Map<UUID, BukkitTask> weaknessTasks = new ConcurrentHashMap<>();
 
-    private final Plugin plugin;
+    private final TaskHelper taskHelper;
     private final PerkManager perkManager;
 
-    public Flash(Plugin plugin, PerkManager perkManager) {
+    public Flash(TaskHelper taskHelper, PerkManager perkManager) {
         super(PerkType.FLASH);
-        this.plugin = plugin;
+        this.taskHelper = taskHelper;
         this.perkManager = perkManager;
     }
 
@@ -51,13 +52,10 @@ public class Flash extends Perk {
         ));
 
         // Start periodic weakness application
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(
-                plugin,
-                () -> applyWeakness(player),
-                WEAKNESS_INTERVAL, // Initial delay (2 minutes)
-                WEAKNESS_INTERVAL  // Repeat every 2 minutes
-        );
-        weaknessTasks.put(uuid, task);
+        taskHelper.subscribe(player.getUniqueId(), getType().getId(), (int) WEAKNESS_INTERVAL, (int) WEAKNESS_INTERVAL, (ticks) -> {
+            applyWeakness(player);
+            return false;
+        });
 
         player.sendMessage("§a§l(!) §aFlash activated! Speed I applied, but weakness every 2 minutes!");
     }
@@ -72,10 +70,7 @@ public class Flash extends Perk {
         }
 
         // Cancel weakness task
-        BukkitTask task = weaknessTasks.remove(uuid);
-        if (task != null) {
-            task.cancel();
-        }
+        taskHelper.stopTask(player.getUniqueId(), getType().getId());
     }
 
     /**

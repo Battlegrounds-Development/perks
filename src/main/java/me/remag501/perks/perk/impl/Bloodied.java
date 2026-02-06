@@ -1,5 +1,6 @@
 package me.remag501.perks.perk.impl;
 
+import me.remag501.bgscore.api.TaskHelper;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.registry.PerkRegistry;
@@ -30,12 +31,12 @@ public class Bloodied extends Perk {
     private final Map<UUID, PlayerBloodiedState> playerStates = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> healthCheckTasks = new ConcurrentHashMap<>();
 
-    private final Plugin plugin;
+    private final TaskHelper taskHelper;
     private final PerkManager perkManager;
 
-    public Bloodied(Plugin plugin, PerkManager perkManager) {
+    public Bloodied(TaskHelper taskHelper, PerkManager perkManager) {
         super(PerkType.BLOODIED);
-        this.plugin = plugin;
+        this.taskHelper = taskHelper;
         this.perkManager = perkManager;
     }
 
@@ -48,13 +49,43 @@ public class Bloodied extends Perk {
         playerStates.put(uuid, state);
 
         // Start periodic health check
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(
-                plugin,
-                () -> checkHealthAndApplyEffect(player),
-                0L,
-                200L // Check every 10 seconds
-        );
-        healthCheckTasks.put(uuid, task);
+        taskHelper.subscribe(player.getUniqueId(), getType().getId(), 0, 200, (ticks) -> {
+            checkHealthAndApplyEffect(player);
+            return false;
+        });
+
+        // 1. Damage Listener
+        taskHelper.subscribe(EntityDamageEvent.class)
+                .owner(uuid)
+                .namespace(getType().getId())
+                .handler(event -> {
+                    if (event.getEntity() instanceof Player p) {
+                        taskHelper.delay(1, () -> checkHealthAndApplyEffect(p));
+                    }
+                });
+
+        // 2. Heal Listener
+        taskHelper.subscribe(EntityRegainHealthEvent.class)
+                .owner(uuid)
+                .namespace(getType().getId())
+                .handler(event -> {
+                    if (event.getEntity() instanceof Player p) {
+                        taskHelper.delay(1, () -> checkHealthAndApplyEffect(p));
+                    }
+                });
+
+        // 3. Potion Effect Listener
+        taskHelper.subscribe(EntityPotionEffectEvent.class)
+                .owner(uuid)
+                .namespace(getType().getId())
+                .handler(event -> {
+                    if (event.getEntity() instanceof Player p) {
+                        taskHelper.delay(1, () -> checkHealthAndApplyEffect(p));
+                    }
+                });
+
+        // Initial check to apply effects immediately on enable
+        checkHealthAndApplyEffect(player);
 
         player.sendMessage("§6§l(!) §6Bloodied activated! Threshold: " + (int)(state.healthThreshold * 100) + "%");
     }
@@ -70,10 +101,8 @@ public class Bloodied extends Perk {
         }
 
         // Clean up all player-specific data
-        BukkitTask task = healthCheckTasks.remove(uuid);
-        if (task != null) {
-            task.cancel();
-        }
+        taskHelper.stopTask(player.getUniqueId(), getType().getId());
+        taskHelper.unregisterListener(uuid, getType().getId());
 
         playerStates.remove(uuid);
     }
@@ -114,13 +143,14 @@ public class Bloodied extends Perk {
                 removeBloodiedEffect(player, state);
             }
         }
+
     }
 
     /**
      * Apply the bloodied strength effect.
      */
     private void applyBloodiedEffect(Player player, PlayerBloodiedState state) {
-        PotionEffect existingEffect = player.getPotionEffect(PotionEffectType.INCREASE_DAMAGE);
+        PotionEffect existingEffect = player.getPotionEffect(PotionEffectType.STRENGTH);
 
         // Save existing strength effect (from kits, etc.)
         if (existingEffect != null) {
@@ -135,7 +165,7 @@ public class Bloodied extends Perk {
         // Apply bloodied strength
         state.isBloodied = true;
         player.addPotionEffect(new PotionEffect(
-                PotionEffectType.INCREASE_DAMAGE,
+                PotionEffectType.STRENGTH,
                 Integer.MAX_VALUE,
                 state.amplifier,
                 false,
@@ -151,19 +181,19 @@ public class Bloodied extends Perk {
     private void removeBloodiedEffect(Player player, PlayerBloodiedState state) {
         state.isBloodied = false;
 
-        PotionEffect currentEffect = player.getPotionEffect(PotionEffectType.INCREASE_DAMAGE);
+        PotionEffect currentEffect = player.getPotionEffect(PotionEffectType.STRENGTH);
 
         // Only remove if it's our bloodied effect
         if (currentEffect != null &&
                 currentEffect.getAmplifier() == state.amplifier &&
                 currentEffect.getDuration() > 500) {
 
-            player.removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
+            player.removePotionEffect(PotionEffectType.STRENGTH);
 
             // Restore previous strength effect if there was one
             if (state.savedDuration > 0) {
                 player.addPotionEffect(new PotionEffect(
-                        PotionEffectType.INCREASE_DAMAGE,
+                        PotionEffectType.STRENGTH,
                         state.savedDuration,
                         state.savedAmplifier,
                         false,
@@ -181,44 +211,35 @@ public class Bloodied extends Perk {
 
     // ==================== EVENT HANDLERS ====================
 
-    @EventHandler
-    public void onPlayerDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
-
-        // Check health immediately when damaged
-        Bukkit.getScheduler().runTask(
-                plugin,
-                () -> checkHealthAndApplyEffect(player)
-        );
-    }
-
-    @EventHandler
-    public void onPlayerHeal(EntityRegainHealthEvent event) {
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
-
-        // Check health immediately when healed
-        Bukkit.getScheduler().runTask(
-                plugin,
-                () -> checkHealthAndApplyEffect(player)
-        );
-    }
-
-    @EventHandler
-    public void onPlayerLoseEffect(EntityPotionEffectEvent event) {
-        if (!(event.getEntity() instanceof Player player)) {
-            return;
-        }
-
-        // Recheck health when effects change
-        Bukkit.getScheduler().runTask(
-                plugin,
-                () -> checkHealthAndApplyEffect(player)
-        );
-    }
+//    @EventHandler
+//    public void onPlayerDamage(EntityDamageEvent event) {
+//        if (!(event.getEntity() instanceof Player player)) {
+//            return;
+//        }
+//
+//        // Check health immediately when damaged
+//        taskHelper.delay(0, () -> checkHealthAndApplyEffect(player));
+//    }
+//
+//    @EventHandler
+//    public void onPlayerHeal(EntityRegainHealthEvent event) {
+//        if (!(event.getEntity() instanceof Player player)) {
+//            return;
+//        }
+//
+//        // Check health immediately when healed
+//        taskHelper.delay(0, () -> checkHealthAndApplyEffect(player));
+//    }
+//
+//    @EventHandler
+//    public void onPlayerLoseEffect(EntityPotionEffectEvent event) {
+//        if (!(event.getEntity() instanceof Player player)) {
+//            return;
+//        }
+//
+//        // Recheck health when effects change
+//        taskHelper.delay(0, () -> checkHealthAndApplyEffect(player));
+//    }
 
     // ==================== INNER CLASS ====================
 

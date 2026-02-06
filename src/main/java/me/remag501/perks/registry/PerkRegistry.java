@@ -1,5 +1,6 @@
 package me.remag501.perks.registry;
 
+import me.remag501.bgscore.api.TaskHelper;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
@@ -24,11 +25,12 @@ public class PerkRegistry {
 
     private final Map<PerkType, Perk> perks;
     private final Map<PerkType, ItemStack> perkItems;
-    private final Plugin plugin; // Used to register listener
+
+    private final TaskHelper taskHelper;
     private final ItemService itemService;
 
-    public PerkRegistry(Plugin plugin, ItemService itemService) {
-        this.plugin = plugin;
+    public PerkRegistry(TaskHelper taskHelper, ItemService itemService) {
+        this.taskHelper = taskHelper;
         this.itemService = itemService;
         this.perks = new HashMap<>();
         this.perkItems = new HashMap<>();
@@ -36,9 +38,9 @@ public class PerkRegistry {
 
     public void init(PerkManager perkManager) {
         // Register KANGAROO perk
-        registerPerk(PerkType.KANGAROO, new Kangaroo(plugin, perkManager));
-        registerPerk(PerkType.BLOODIED, new Bloodied(plugin , perkManager));
-        registerPerk(PerkType.FLASH, new Flash(plugin, perkManager));
+        registerPerk(PerkType.KANGAROO, new Kangaroo(taskHelper, perkManager));
+        registerPerk(PerkType.BLOODIED, new Bloodied(taskHelper, perkManager));
+        registerPerk(PerkType.FLASH, new Flash(taskHelper, perkManager));
     }
 
     private void registerPerk(PerkType type, Perk perk) {
@@ -52,8 +54,6 @@ public class PerkRegistry {
                 type.getDescription()
         );
         perkItems.put(type, item);
-
-        Bukkit.getPluginManager().registerEvents(perk, plugin);
     }
 
     public Perk getPerk(PerkType type) {

@@ -1,73 +1,75 @@
 package me.remag501.perks.perk.impl;
 
+import me.remag501.bgscore.api.TaskHelper;
 import me.remag501.perks.manager.PerkManager;
-import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
-import me.remag501.perks.model.PerkProfile;
 import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Kangaroo perk - allows double jumping with a cooldown.
- * This perk needs cooldowns, so it manages them internally.
- */
 public class Kangaroo extends Perk {
 
-    private static final long COOLDOWN_TIME = 30 * 1000; // 30 seconds
-
-    // This perk needs cooldowns, so it stores them here
+    private static final long COOLDOWN_TIME = 30 * 1000;
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
-    private final Plugin plugin;
+    private final TaskHelper taskHelper;
     private final PerkManager perkManager;
 
-    public Kangaroo(Plugin plugin, PerkManager perkManager) {
+    public Kangaroo(TaskHelper taskHelper, PerkManager perkManager) {
         super(PerkType.KANGAROO);
+        this.taskHelper = taskHelper;
         this.perkManager = perkManager;
-        this.plugin = plugin;
     }
 
     @Override
     public void onEnable(Player player, int stars) {
-        // Enable flight for double jump detection
+        UUID uuid = player.getUniqueId();
+
+        // 1. Setup Flight
         if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
             player.setAllowFlight(true);
         }
+
+        // 2. Register SURGICAL Listeners
+        // These only fire for THIS player, and we tag them with "kangaroo" for easy removal
+        taskHelper.subscribe(PlayerMoveEvent.class)
+                .owner(uuid)
+                .namespace(getType().getId())
+                .handler(this::handleMove);
+
+        taskHelper.subscribe(PlayerToggleFlightEvent.class)
+                .owner(uuid)
+                .namespace(getType().getId())
+                .handler(this::handleToggleFlight);
     }
 
     @Override
     public void onDisable(Player player) {
-        // Disable flight when perk is removed
+        UUID uuid = player.getUniqueId();
+
+        // 1. Cleanup Flight
         if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
             player.setFlying(false);
             player.setAllowFlight(false);
         }
 
-        cooldowns.remove(player.getUniqueId());
+        // 2. Surgical Removal
+        // This tells the Core EventBus: "Delete all kangaroo listeners for this UUID"
+        taskHelper.unregisterListener(uuid, getType().getId());
 
+        cooldowns.remove(uuid);
     }
 
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
+    private void handleMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-
-        if (!isPlayerUsingPerk(player)) {
-            return;
-        }
-
-        // Re-enable flight when player lands
         if (player.isOnGround() && !isOnCooldown(player.getUniqueId())) {
             if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
                 player.setAllowFlight(true);
@@ -75,79 +77,44 @@ public class Kangaroo extends Perk {
         }
     }
 
-    @EventHandler
-    public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
+    private void handleToggleFlight(PlayerToggleFlightEvent event) {
         Player player = event.getPlayer();
+        if (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE) return;
 
-        if (!isPlayerUsingPerk(player)) {
-            return;
-        }
-
-        // Only process in survival/adventure mode
-        if (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE) {
-            return;
-        }
-
-        // Cancel the event to prevent actual flight
         event.setCancelled(true);
 
-        // Check if player is airborne and can double jump
         if (!player.isOnGround()) {
             if (isOnCooldown(player.getUniqueId())) {
                 player.sendMessage("§c§l(!) §cDouble jump is on cooldown!");
                 return;
             }
-
             performDoubleJump(player);
         }
     }
 
     private void performDoubleJump(Player player) {
         UUID uuid = player.getUniqueId();
-
-        // Disable flight temporarily
         player.setFlying(false);
         player.setAllowFlight(false);
 
-        // Calculate jump velocity
-        Vector jumpVelocity = player.getVelocity();
-        jumpVelocity.normalize();
-        jumpVelocity.multiply(1.5); // Forward velocity
-        jumpVelocity.setY(1.0); // Upward velocity
+        Vector jumpVelocity = player.getVelocity().normalize().multiply(1.5).setY(1.0);
         player.setVelocity(jumpVelocity);
 
-        // Visual and audio feedback
         player.sendMessage("§a§l(!) §aYou used your double jump!");
-        player.getWorld().spawnParticle(
-                Particle.EXPLOSION_LARGE,
-                player.getLocation(),
-                20, 0.5, 0.5, 0.5, 0.1
-        );
+        player.getWorld().spawnParticle(Particle.EXPLOSION, player.getLocation(), 20, 0.5, 0.5, 0.5, 0.1);
 
-        // Set cooldown
         cooldowns.put(uuid, System.currentTimeMillis());
 
-        // Schedule cooldown expiry notification
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (isPlayerUsingPerk(player)) {
-                    player.sendMessage("§a§l(!) §aDouble jump is ready!");
-                }
+        // Using TaskHelper instead of BukkitRunnable
+        taskHelper.delay(600, () -> {
+            if (perkManager.getProfile(uuid).isActive(getType())) {
+                player.sendMessage("§a§l(!) §aDouble jump is ready!");
             }
-        }.runTaskLater(plugin, 600L); // 30 seconds
+        });
     }
 
     private boolean isOnCooldown(UUID uuid) {
         Long lastUsed = cooldowns.get(uuid);
-        if (lastUsed == null) {
-            return false;
-        }
-        return (System.currentTimeMillis() - lastUsed) < COOLDOWN_TIME;
-    }
-
-    private boolean isPlayerUsingPerk(Player player) {
-        PerkProfile profile = perkManager.getProfile(player.getUniqueId());
-        return profile.isActive(getType());
+        return lastUsed != null && (System.currentTimeMillis() - lastUsed) < COOLDOWN_TIME;
     }
 }
