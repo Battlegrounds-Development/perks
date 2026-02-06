@@ -1,5 +1,8 @@
 package me.remag501.perks;
 
+import me.remag501.bgscore.BGSCore;
+import me.remag501.bgscore.api.BGSApi;
+import me.remag501.bgscore.api.TaskHelper;
 import me.remag501.perks.command.PerksCommand;
 import me.remag501.perks.listener.GambleListener;
 import me.remag501.perks.listener.GlobalPerkListener;
@@ -32,11 +35,14 @@ public class Perks extends JavaPlugin {
     public void onEnable() {
         getLogger().info("Starting Perks plugin initialization...");
 
-        // 1. Load configuration first
+        // 1. Get the API from the Core ONCE
+        TaskHelper taskHelper = BGSApi.getTaskHelper();
+
+        // 2. Load configuration first
         worldRegistry = new WorldRegistry();
         loadConfiguration();
 
-        // 2. Initialize singletons in correct order
+        // 3. Initialize singletons in correct order
 
         NamespaceService namespaceService = new NamespaceService(this);
         ItemService itemService = new ItemService(namespaceService);
@@ -51,7 +57,7 @@ public class Perks extends JavaPlugin {
         PerkMenu perkMenu = new PerkMenu(perkManager, perkRegistry, itemService);
         ScrapMenu scrapMenu = new ScrapMenu();
 
-        // 3. Register event listeners
+        // 4. Register event listeners
         getServer().getPluginManager().registerEvents(new GlobalPerkListener(perkManager, perkRegistry, worldRegistry, itemService), this);
         getServer().getPluginManager().registerEvents(new PerkMenuListener(perkManager, perkMenu, gambleMenu, itemService, scrapMenu), this);
         getServer().getPluginManager().registerEvents(new GambleListener(gambleManager, perkMenu), this);

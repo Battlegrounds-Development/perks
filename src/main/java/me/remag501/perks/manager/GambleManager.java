@@ -64,7 +64,7 @@ public class GambleManager {
 
         ItemStack totem = new ItemStack(Material.TOTEM_OF_UNDYING);
         ItemMeta meta = totem.getItemMeta();
-        int cmd = perkRegistry.getPerkItem(perkType).getItemMeta().getCustomModelData();
+        int cmd = perkType.getCustomModelData();
 
         if (meta != null) {
             meta.setCustomModelData(cmd);
