@@ -6,6 +6,7 @@ import me.remag501.bgscore.api.command.CommandService;
 import me.remag501.bgscore.api.event.EventService;
 import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.command.PerksCommand;
+import me.remag501.perks.command.PerksCompleter;
 import me.remag501.perks.listener.GambleListener;
 import me.remag501.perks.listener.GlobalPerkListener;
 import me.remag501.perks.listener.PerkMenuListener;
@@ -68,9 +69,10 @@ public class Perks extends JavaPlugin {
         new ScrapListener(eventService, perkManager, perkRegistry, perkMenu);
 
         // 4. Register commands
-        this.getCommand("perks").setExecutor(new PerksCommand(this, perkManager, perkMenu, itemService));
-        // You can add tab completers here too
-        // this.getCommand("perks").setTabCompleter(new PerksTabCompleter());
+        PerksCommand perksCommand = new PerksCommand(this, perkManager, perkMenu, itemService);
+        this.getCommand("perks").setExecutor(perksCommand);
+        this.getCommand("perks").setTabCompleter(new PerksCompleter(this));
+        commandService.registerSubcommand("perk", perksCommand);
 
         // 5. Load perks for online players (in case of reload)
         Bukkit.getOnlinePlayers().forEach(player -> perkManager.handlePlayerJoin(player));
