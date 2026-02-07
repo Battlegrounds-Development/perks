@@ -1,6 +1,7 @@
 package me.remag501.perks.registry;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
@@ -26,11 +27,13 @@ public class PerkRegistry {
     private final Map<PerkType, Perk> perks;
     private final Map<PerkType, ItemStack> perkItems;
 
-    private final TaskHelper taskHelper;
+    private final TaskService taskService;
+    private final EventService eventService;
     private final ItemService itemService;
 
-    public PerkRegistry(TaskHelper taskHelper, ItemService itemService) {
-        this.taskHelper = taskHelper;
+    public PerkRegistry(EventService eventService, TaskService taskService, ItemService itemService) {
+        this.eventService = eventService;
+        this.taskService = taskService;
         this.itemService = itemService;
         this.perks = new HashMap<>();
         this.perkItems = new HashMap<>();
@@ -38,9 +41,9 @@ public class PerkRegistry {
 
     public void init(PerkManager perkManager) {
         // Register KANGAROO perk
-        registerPerk(PerkType.KANGAROO, new Kangaroo(taskHelper, perkManager));
-        registerPerk(PerkType.BLOODIED, new Bloodied(taskHelper, perkManager));
-        registerPerk(PerkType.FLASH, new Flash(taskHelper, perkManager));
+        registerPerk(PerkType.KANGAROO, new Kangaroo(eventService, taskService, perkManager));
+        registerPerk(PerkType.BLOODIED, new Bloodied(eventService, taskService, perkManager));
+        registerPerk(PerkType.FLASH, new Flash(taskService, perkManager));
     }
 
     private void registerPerk(PerkType type, Perk perk) {

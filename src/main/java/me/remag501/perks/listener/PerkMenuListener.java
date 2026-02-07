@@ -1,6 +1,6 @@
 package me.remag501.perks.listener;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
@@ -23,7 +23,7 @@ public class PerkMenuListener {
     private final ScrapMenu scrapMenu;
     private final ItemService itemService;
 
-    public PerkMenuListener(TaskHelper taskHelper, PerkManager perkManager, PerkMenu perkMenu, GambleMenu gambleMenu, ItemService itemService, ScrapMenu scrapMenu) {
+    public PerkMenuListener(EventService eventService, PerkManager perkManager, PerkMenu perkMenu, GambleMenu gambleMenu, ItemService itemService, ScrapMenu scrapMenu) {
         this.perkManager = perkManager;
         this.perkMenu = perkMenu;
         this.gambleMenu = gambleMenu;
@@ -31,7 +31,7 @@ public class PerkMenuListener {
         this.itemService = itemService;
 
         // Register the primary subscription
-        taskHelper.subscribe(InventoryClickEvent.class)
+        eventService.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getView().getTitle().equals("Choose Your Perk"))
                 .handler(this::handleMenuClick);
     }

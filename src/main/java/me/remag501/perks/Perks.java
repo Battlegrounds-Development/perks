@@ -2,7 +2,9 @@ package me.remag501.perks;
 
 import me.remag501.bgscore.BGSCore;
 import me.remag501.bgscore.api.BGSApi;
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.command.CommandService;
+import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.command.PerksCommand;
 import me.remag501.perks.listener.GambleListener;
 import me.remag501.perks.listener.GlobalPerkListener;
@@ -35,8 +37,10 @@ public class Perks extends JavaPlugin {
     public void onEnable() {
         getLogger().info("Starting Perks plugin initialization...");
 
-        // 1. Get the API from the Core ONCE
-        TaskHelper taskHelper = BGSApi.getTaskHelper();
+        // 1. Get the services from the BGS api
+        CommandService commandService = BGSApi.commands();
+        EventService eventService = BGSApi.events();
+        TaskService taskService = BGSApi.tasks();
 
         // 2. Load configuration first
         worldRegistry = new WorldRegistry();
@@ -47,7 +51,7 @@ public class Perks extends JavaPlugin {
         NamespaceService namespaceService = new NamespaceService(this); // Needed to reference namespace
         ItemService itemService = new ItemService(namespaceService);
 
-        PerkRegistry perkRegistry = new PerkRegistry(taskHelper, itemService);
+        PerkRegistry perkRegistry = new PerkRegistry(eventService, taskService, itemService);
         ConfigManager configManager = new ConfigManager(this, "perks.yml"); // Access plugin's folder config
         perkManager = new PerkManager(getLogger(), perkRegistry, worldRegistry, configManager);
         perkRegistry.init(perkManager);
@@ -58,14 +62,10 @@ public class Perks extends JavaPlugin {
         ScrapMenu scrapMenu = new ScrapMenu();
 
         // 4. Register event listeners
-//        getServer().getPluginManager().registerEvents(new GlobalPerkListener(taskHelper, perkManager, perkRegistry, worldRegistry, itemService), this);
-        new GlobalPerkListener(taskHelper, perkManager, perkRegistry, worldRegistry, itemService);
-//        getServer().getPluginManager().registerEvents(new PerkMenuListener(taskHelper, perkManager, perkMenu, gambleMenu, itemService, scrapMenu), this);
-        new PerkMenuListener(taskHelper, perkManager, perkMenu, gambleMenu, itemService, scrapMenu);
-//        getServer().getPluginManager().registerEvents(new GambleListener(taskHelper, gambleManager, perkMenu), this);
-        new GambleListener(taskHelper, gambleManager, perkMenu);
-//        getServer().getPluginManager().registerEvents(new ScrapListener(taskHelper, perkManager, perkRegistry, perkMenu), this);
-        new ScrapListener(taskHelper, perkManager, perkRegistry, perkMenu);
+        new GlobalPerkListener(eventService, perkManager, perkRegistry, worldRegistry, itemService);;
+        new PerkMenuListener(eventService, perkManager, perkMenu, gambleMenu, itemService, scrapMenu);
+        new GambleListener(eventService, gambleManager, perkMenu);
+        new ScrapListener(eventService, perkManager, perkRegistry, perkMenu);
 
         // 4. Register commands
         this.getCommand("perks").setExecutor(new PerksCommand(this, perkManager, perkMenu, itemService));

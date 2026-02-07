@@ -1,6 +1,6 @@
 package me.remag501.perks.listener;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
@@ -25,22 +25,22 @@ public class GlobalPerkListener {
     private final WorldRegistry worldRegistry;
     private final ItemService itemService;
 
-    public GlobalPerkListener(TaskHelper taskHelper, PerkManager perkManager, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ItemService itemService) {
+    public GlobalPerkListener(EventService eventService, PerkManager perkManager, PerkRegistry perkRegistry, WorldRegistry worldRegistry, ItemService itemService) {
         this.perkManager = perkManager;
         this.perkRegistry = perkRegistry;
         this.worldRegistry = worldRegistry;
         this.itemService = itemService;
 
         // 1. Join & Quit
-        taskHelper.subscribe(PlayerJoinEvent.class).handler(this::handleJoin);
-        taskHelper.subscribe(PlayerQuitEvent.class).handler(this::handleQuit);
+        eventService.subscribe(PlayerJoinEvent.class).handler(this::handleJoin);
+        eventService.subscribe(PlayerQuitEvent.class).handler(this::handleQuit);
 
         // 2. World Movement & Respawn
-        taskHelper.subscribe(PlayerChangedWorldEvent.class).handler(this::handleWorldChange);
-        taskHelper.subscribe(PlayerRespawnEvent.class).handler(e -> checkAllowedWorld(e.getPlayer()));
+        eventService.subscribe(PlayerChangedWorldEvent.class).handler(this::handleWorldChange);
+        eventService.subscribe(PlayerRespawnEvent.class).handler(e -> checkAllowedWorld(e.getPlayer()));
 
         // 3. Combat & Death
-        taskHelper.subscribe(PlayerDeathEvent.class).handler(this::handleDeath);
+        eventService.subscribe(PlayerDeathEvent.class).handler(this::handleDeath);
     }
 
     private void handleJoin(PlayerJoinEvent event) {

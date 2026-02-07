@@ -1,6 +1,7 @@
 package me.remag501.perks.perk.impl;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
@@ -20,12 +21,14 @@ public class Kangaroo extends Perk {
     private static final long COOLDOWN_TIME = 30 * 1000;
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
-    private final TaskHelper taskHelper;
+    private final EventService eventService;
+    private final TaskService taskService;
     private final PerkManager perkManager;
 
-    public Kangaroo(TaskHelper taskHelper, PerkManager perkManager) {
+    public Kangaroo(EventService eventService, TaskService taskService, PerkManager perkManager) {
         super(PerkType.KANGAROO);
-        this.taskHelper = taskHelper;
+        this.eventService = eventService;
+        this.taskService = taskService;
         this.perkManager = perkManager;
     }
 
@@ -40,12 +43,12 @@ public class Kangaroo extends Perk {
 
         // 2. Register SURGICAL Listeners
         // These only fire for THIS player, and we tag them with "kangaroo" for easy removal
-        taskHelper.subscribe(PlayerMoveEvent.class)
+        eventService.subscribe(PlayerMoveEvent.class)
                 .owner(uuid)
                 .namespace(getType().getId())
                 .handler(this::handleMove);
 
-        taskHelper.subscribe(PlayerToggleFlightEvent.class)
+        eventService.subscribe(PlayerToggleFlightEvent.class)
                 .owner(uuid)
                 .namespace(getType().getId())
                 .handler(this::handleToggleFlight);
@@ -62,8 +65,7 @@ public class Kangaroo extends Perk {
         }
 
         // 2. Surgical Removal
-        // This tells the Core EventBus: "Delete all kangaroo listeners for this UUID"
-        taskHelper.unregisterListener(uuid, getType().getId());
+        eventService.unregisterListener(uuid, getType().getId());
 
         cooldowns.remove(uuid);
     }
@@ -106,7 +108,7 @@ public class Kangaroo extends Perk {
         cooldowns.put(uuid, System.currentTimeMillis());
 
         // Using TaskHelper instead of BukkitRunnable
-        taskHelper.delay(600, () -> {
+        taskService.delay(600, () -> {
             if (perkManager.getProfile(uuid).isActive(getType())) {
                 player.sendMessage("§a§l(!) §aDouble jump is ready!");
             }

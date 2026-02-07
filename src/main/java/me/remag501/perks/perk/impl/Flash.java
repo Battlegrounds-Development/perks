@@ -1,14 +1,11 @@
 package me.remag501.perks.perk.impl;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
-import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.model.PerkProfile;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -29,12 +26,12 @@ public class Flash extends Perk {
     // Track weakness application tasks per player
     private final Map<UUID, BukkitTask> weaknessTasks = new ConcurrentHashMap<>();
 
-    private final TaskHelper taskHelper;
+    private final TaskService taskService;
     private final PerkManager perkManager;
 
-    public Flash(TaskHelper taskHelper, PerkManager perkManager) {
+    public Flash(TaskService taskService, PerkManager perkManager) {
         super(PerkType.FLASH);
-        this.taskHelper = taskHelper;
+        this.taskService = taskService;
         this.perkManager = perkManager;
     }
 
@@ -52,7 +49,7 @@ public class Flash extends Perk {
         ));
 
         // Start periodic weakness application
-        taskHelper.subscribe(player.getUniqueId(), getType().getId(), (int) WEAKNESS_INTERVAL, (int) WEAKNESS_INTERVAL, (ticks) -> {
+        taskService.subscribe(player.getUniqueId(), getType().getId(), (int) WEAKNESS_INTERVAL, (int) WEAKNESS_INTERVAL, (ticks) -> {
             applyWeakness(player);
             return false;
         });
@@ -70,7 +67,7 @@ public class Flash extends Perk {
         }
 
         // Cancel weakness task
-        taskHelper.stopTask(player.getUniqueId(), getType().getId());
+        taskService.stopTask(player.getUniqueId(), getType().getId());
     }
 
     /**

@@ -1,6 +1,6 @@
 package me.remag501.perks.listener;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
 import me.remag501.perks.manager.GambleManager;
 import me.remag501.perks.ui.PerkMenu;
 import org.bukkit.Material;
@@ -13,12 +13,12 @@ public class GambleListener {
     private final GambleManager gambleManager;
     private final PerkMenu perkMenu;
 
-    public GambleListener(TaskHelper taskHelper, GambleManager gambleManager, PerkMenu perkMenu) {
+    public GambleListener(EventService eventService, GambleManager gambleManager, PerkMenu perkMenu) {
         this.gambleManager = gambleManager;
         this.perkMenu = perkMenu;
 
         // Registering via the injected TaskHelper
-        taskHelper.subscribe(InventoryClickEvent.class)
+        eventService.subscribe(InventoryClickEvent.class)
                 .filter(event -> event.getView().getTitle().equals("Roll for Perks"))
                 .handler(this::handleMenuClick);
     }

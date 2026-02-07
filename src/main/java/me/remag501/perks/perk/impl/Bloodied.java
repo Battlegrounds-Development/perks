@@ -1,18 +1,15 @@
 package me.remag501.perks.perk.impl;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
-import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.model.PerkProfile;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -31,12 +28,14 @@ public class Bloodied extends Perk {
     private final Map<UUID, PlayerBloodiedState> playerStates = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> healthCheckTasks = new ConcurrentHashMap<>();
 
-    private final TaskHelper taskHelper;
+    private final EventService eventService;
+    private final TaskService taskService;
     private final PerkManager perkManager;
 
-    public Bloodied(TaskHelper taskHelper, PerkManager perkManager) {
+    public Bloodied(EventService eventService, TaskService taskService, PerkManager perkManager) {
         super(PerkType.BLOODIED);
-        this.taskHelper = taskHelper;
+        this.eventService = eventService;
+        this.taskService = taskService;
         this.perkManager = perkManager;
     }
 
@@ -49,38 +48,38 @@ public class Bloodied extends Perk {
         playerStates.put(uuid, state);
 
         // Start periodic health check
-        taskHelper.subscribe(player.getUniqueId(), getType().getId(), 0, 200, (ticks) -> {
+        taskService.subscribe(player.getUniqueId(), getType().getId(), 0, 200, (ticks) -> {
             checkHealthAndApplyEffect(player);
             return false;
         });
 
         // 1. Damage Listener
-        taskHelper.subscribe(EntityDamageEvent.class)
+        eventService.subscribe(EntityDamageEvent.class)
                 .owner(uuid)
                 .namespace(getType().getId())
                 .handler(event -> {
                     if (event.getEntity() instanceof Player p) {
-                        taskHelper.delay(1, () -> checkHealthAndApplyEffect(p));
+                        taskService.delay(1, () -> checkHealthAndApplyEffect(p));
                     }
                 });
 
         // 2. Heal Listener
-        taskHelper.subscribe(EntityRegainHealthEvent.class)
+        eventService.subscribe(EntityRegainHealthEvent.class)
                 .owner(uuid)
                 .namespace(getType().getId())
                 .handler(event -> {
                     if (event.getEntity() instanceof Player p) {
-                        taskHelper.delay(1, () -> checkHealthAndApplyEffect(p));
+                        taskService.delay(1, () -> checkHealthAndApplyEffect(p));
                     }
                 });
 
         // 3. Potion Effect Listener
-        taskHelper.subscribe(EntityPotionEffectEvent.class)
+        eventService.subscribe(EntityPotionEffectEvent.class)
                 .owner(uuid)
                 .namespace(getType().getId())
                 .handler(event -> {
                     if (event.getEntity() instanceof Player p) {
-                        taskHelper.delay(1, () -> checkHealthAndApplyEffect(p));
+                        taskService.delay(1, () -> checkHealthAndApplyEffect(p));
                     }
                 });
 
@@ -101,8 +100,8 @@ public class Bloodied extends Perk {
         }
 
         // Clean up all player-specific data
-        taskHelper.stopTask(player.getUniqueId(), getType().getId());
-        taskHelper.unregisterListener(uuid, getType().getId());
+        taskService.stopTask(player.getUniqueId(), getType().getId());
+        eventService.unregisterListener(uuid, getType().getId());
 
         playerStates.remove(uuid);
     }
@@ -208,38 +207,6 @@ public class Bloodied extends Perk {
 
         player.sendMessage("§7Your strength fades as you heal.");
     }
-
-    // ==================== EVENT HANDLERS ====================
-
-//    @EventHandler
-//    public void onPlayerDamage(EntityDamageEvent event) {
-//        if (!(event.getEntity() instanceof Player player)) {
-//            return;
-//        }
-//
-//        // Check health immediately when damaged
-//        taskHelper.delay(0, () -> checkHealthAndApplyEffect(player));
-//    }
-//
-//    @EventHandler
-//    public void onPlayerHeal(EntityRegainHealthEvent event) {
-//        if (!(event.getEntity() instanceof Player player)) {
-//            return;
-//        }
-//
-//        // Check health immediately when healed
-//        taskHelper.delay(0, () -> checkHealthAndApplyEffect(player));
-//    }
-//
-//    @EventHandler
-//    public void onPlayerLoseEffect(EntityPotionEffectEvent event) {
-//        if (!(event.getEntity() instanceof Player player)) {
-//            return;
-//        }
-//
-//        // Recheck health when effects change
-//        taskHelper.delay(0, () -> checkHealthAndApplyEffect(player));
-//    }
 
     // ==================== INNER CLASS ====================
 

@@ -1,6 +1,6 @@
 package me.remag501.perks.listener;
 
-import me.remag501.bgscore.api.TaskHelper;
+import me.remag501.bgscore.api.event.EventService;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
@@ -18,12 +18,12 @@ public class ScrapListener {
     private final PerkRegistry perkRegistry;
     private final PerkMenu perkMenu;
 
-    public ScrapListener(TaskHelper taskHelper, PerkManager perkManager, PerkRegistry perkRegistry, PerkMenu perkMenu) {
+    public ScrapListener(EventService eventService, PerkManager perkManager, PerkRegistry perkRegistry, PerkMenu perkMenu) {
         this.perkManager = perkManager;
         this.perkRegistry = perkRegistry;
         this.perkMenu = perkMenu;
 
-        taskHelper.subscribe(InventoryClickEvent.class)
+        eventService.subscribe(InventoryClickEvent.class)
                 .filter(e -> e.getView().getTitle().equals("Confirm Scrap"))
                 .handler(this::handleScrapClick);
     }
