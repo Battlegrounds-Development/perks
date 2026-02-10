@@ -1,5 +1,8 @@
 package me.remag501.perks.perk.impl;
 
+import me.remag501.bgscore.api.BGSApi;
+import me.remag501.bgscore.api.ability.AbilityDisplay;
+import me.remag501.bgscore.api.ability.AbilityService;
 import me.remag501.bgscore.api.event.EventService;
 import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.manager.PerkManager;
@@ -7,116 +10,92 @@ import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
 import org.bukkit.GameMode;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.util.Vector;
 
-import java.util.Map;
+import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Kangaroo extends Perk {
 
-    private static final long COOLDOWN_TIME = 30 * 1000;
-    private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
+    private static final String ULT_ID = "perk_kangaroo_ult";
+    private static final double MAX_ENERGY = 100.0;
 
+    private final AbilityService abilityService;
     private final EventService eventService;
-    private final TaskService taskService;
-    private final PerkManager perkManager;
 
     public Kangaroo(EventService eventService, TaskService taskService, PerkManager perkManager) {
         super(PerkType.KANGAROO);
         this.eventService = eventService;
-        this.taskService = taskService;
-        this.perkManager = perkManager;
+        this.abilityService = BGSApi.ability();
     }
 
     @Override
     public void onEnable(Player player, int stars) {
-        UUID uuid = player.getUniqueId();
+        abilityService.setupUltimate(player.getUniqueId(), ULT_ID, MAX_ENERGY, AbilityDisplay.XP_BAR);
 
-        // 1. Setup Flight
-        if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
-            player.setAllowFlight(true);
-        }
-
-        // 2. Register SURGICAL Listeners
-        // These only fire for THIS player, and we tag them with "kangaroo" for easy removal
+        // 1. Charge up by sprinting/walking
         eventService.subscribe(PlayerMoveEvent.class)
-                .owner(uuid)
+                .owner(player.getUniqueId())
                 .namespace(getType().getId())
-                .handler(this::handleMove);
+                .handler(this::handleCharge);
 
-        eventService.subscribe(PlayerToggleFlightEvent.class)
-                .owner(uuid)
+        // 2. SURPRISE: Trigger by landing (EntityDamageEvent for Fall Damage)
+        eventService.subscribe(EntityDamageEvent.class)
+                .owner(player.getUniqueId())
                 .namespace(getType().getId())
-                .handler(this::handleToggleFlight);
+                .handler(this::handleImpactTrigger);
     }
 
     @Override
     public void onDisable(Player player) {
+        abilityService.reset(player.getUniqueId(), ULT_ID);
+        eventService.unregisterListener(player.getUniqueId(), getType().getId());
+    }
+
+    private void handleCharge(PlayerMoveEvent event) {
+        if (!event.getPlayer().isOnGround()) return;
+
+        double dist = event.getFrom().distance(event.getTo());
+        if (dist > 0) {
+            // Fill the XP bar as they move
+            abilityService.addCharge(event.getPlayer().getUniqueId(), ULT_ID, dist * 0.5);
+        }
+    }
+
+    private void handleImpactTrigger(EntityDamageEvent event) {
+        if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+
+        Player player = (Player) event.getEntity();
         UUID uuid = player.getUniqueId();
 
-        // 1. Cleanup Flight
-        if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
-            player.setFlying(false);
-            player.setAllowFlight(false);
-        }
+        // If the bar is full when you hit the ground...
+        if (abilityService.getPercentage(uuid, ULT_ID) >= 0.99) {
+            // Cancel the fall damage!
+            event.setCancelled(true);
 
-        // 2. Surgical Removal
-        eventService.unregisterListener(uuid, getType().getId());
+            // Trigger the Bounce
+            triggerMegaBounce(player);
 
-        cooldowns.remove(uuid);
-    }
-
-    private void handleMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (player.isOnGround() && !isOnCooldown(player.getUniqueId())) {
-            if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE) {
-                player.setAllowFlight(true);
-            }
+            // Reset the bar
+            abilityService.setCharge(uuid, ULT_ID, 0);
         }
     }
 
-    private void handleToggleFlight(PlayerToggleFlightEvent event) {
-        Player player = event.getPlayer();
-        if (player.getGameMode() != GameMode.SURVIVAL && player.getGameMode() != GameMode.ADVENTURE) return;
+    private void triggerMegaBounce(Player player) {
+        // Launch them forward and UP based on where they are looking
+        Vector boost = player.getLocation().getDirection().multiply(2.0).setY(1.5);
+        player.setVelocity(boost);
 
-        event.setCancelled(true);
+        player.sendMessage("§6§l(!) §e§lIMPACT BOUNCE! §6Energy released.");
 
-        if (!player.isOnGround()) {
-            if (isOnCooldown(player.getUniqueId())) {
-                player.sendMessage("§c§l(!) §cDouble jump is on cooldown!");
-                return;
-            }
-            performDoubleJump(player);
-        }
-    }
-
-    private void performDoubleJump(Player player) {
-        UUID uuid = player.getUniqueId();
-        player.setFlying(false);
-        player.setAllowFlight(false);
-
-        Vector jumpVelocity = player.getVelocity().normalize().multiply(1.5).setY(1.0);
-        player.setVelocity(jumpVelocity);
-
-        player.sendMessage("§a§l(!) §aYou used your double jump!");
-        player.getWorld().spawnParticle(Particle.EXPLOSION, player.getLocation(), 20, 0.5, 0.5, 0.5, 0.1);
-
-        cooldowns.put(uuid, System.currentTimeMillis());
-
-        // Using TaskHelper instead of BukkitRunnable
-        taskService.delay(600, () -> {
-            if (perkManager.getProfile(uuid).isActive(getType())) {
-                player.sendMessage("§a§l(!) §aDouble jump is ready!");
-            }
-        });
-    }
-
-    private boolean isOnCooldown(UUID uuid) {
-        Long lastUsed = cooldowns.get(uuid);
-        return lastUsed != null && (System.currentTimeMillis() - lastUsed) < COOLDOWN_TIME;
+        // Visuals
+        player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LARGE_BLAST, 1f, 1f);
     }
 }

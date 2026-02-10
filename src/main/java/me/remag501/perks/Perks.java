@@ -1,9 +1,9 @@
 package me.remag501.perks;
 
-import me.remag501.bgscore.BGSCore;
 import me.remag501.bgscore.api.BGSApi;
 import me.remag501.bgscore.api.command.CommandService;
 import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.namespace.NamespaceService;
 import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.perks.command.PerksCommand;
 import me.remag501.perks.command.PerksCompleter;
@@ -16,7 +16,6 @@ import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.registry.PerkRegistry;
 import me.remag501.perks.registry.WorldRegistry;
 import me.remag501.perks.service.ItemService;
-import me.remag501.perks.service.NamespaceService;
 import me.remag501.perks.ui.GambleMenu;
 import me.remag501.perks.ui.PerkMenu;
 import me.remag501.perks.manager.ConfigManager;
@@ -42,14 +41,13 @@ public class Perks extends JavaPlugin {
         CommandService commandService = BGSApi.commands();
         EventService eventService = BGSApi.events();
         TaskService taskService = BGSApi.tasks();
+        NamespaceService namespaceService = BGSApi.namespaces();
 
-        // 2. Load configuration first
+                // 2. Load configuration first
         worldRegistry = new WorldRegistry();
         loadConfiguration();
 
         // 3. Initialize singletons in correct order
-
-        NamespaceService namespaceService = new NamespaceService(this); // Needed to reference namespace
         ItemService itemService = new ItemService(namespaceService);
 
         PerkRegistry perkRegistry = new PerkRegistry(eventService, taskService, itemService);

@@ -1,5 +1,6 @@
 package me.remag501.perks.service;
 
+import me.remag501.bgscore.api.namespace.NamespaceService;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.util.ItemUtil;
 import org.bukkit.Bukkit;
@@ -46,7 +47,7 @@ public class ItemService {
         if (rarityStr.equals("§8§lHidden")) {
             ItemMeta meta = item.getItemMeta();
             PersistentDataContainer data = meta.getPersistentDataContainer();
-            data.set(namespaceService.RARITY_KEY, PersistentDataType.STRING, "HIDDEN");
+            data.set(namespaceService.getRarityKey(), PersistentDataType.STRING, "HIDDEN");
             item.setItemMeta(meta);
         }
         return item;
@@ -69,7 +70,7 @@ public class ItemService {
             // Add unique identifier to the item
             if (id != null) {
                 PersistentDataContainer data = meta.getPersistentDataContainer();
-                data.set(namespaceService.PERK_ID_KEY, PersistentDataType.STRING, id);
+                data.set(namespaceService.getPerkIdKey(), PersistentDataType.STRING, id);
             }
             // Make item look enchanted
             if (enchanted) {
@@ -117,7 +118,7 @@ public class ItemService {
             meta.setLore(lore);
 
             PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
-            dataContainer.set(namespaceService.PERK_ID_KEY, PersistentDataType.STRING, perkType.getId());
+            dataContainer.set(namespaceService.getPerkIdKey(), PersistentDataType.STRING, perkType.getId());
 
             perkCard.setItemMeta(meta);
         }
@@ -144,7 +145,7 @@ public class ItemService {
     // Then in your getPerkID method:
     public String getPerkID(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
-        return item.getItemMeta().getPersistentDataContainer().get(namespaceService.PERK_ID_KEY, PersistentDataType.STRING);
+        return item.getItemMeta().getPersistentDataContainer().get(namespaceService.getPerkIdKey(), PersistentDataType.STRING);
     }
 
     // Function to check if two ItemStacks are equal based on their PersistentDataContainer
@@ -170,9 +171,9 @@ public class ItemService {
         PersistentDataContainer data2 = meta2.getPersistentDataContainer();
 
         // Check if both items have the custom key in their PersistentDataContainer
-        if (data1.has(namespaceService.PERK_ID_KEY, PersistentDataType.STRING) && data2.has(namespaceService.PERK_ID_KEY, PersistentDataType.STRING)) {
-            String id1 = data1.get(namespaceService.PERK_ID_KEY, PersistentDataType.STRING);
-            String id2 = data2.get(namespaceService.PERK_ID_KEY, PersistentDataType.STRING);
+        if (data1.has(namespaceService.getPerkIdKey(), PersistentDataType.STRING) && data2.has(namespaceService.getPerkIdKey(), PersistentDataType.STRING)) {
+            String id1 = data1.get(namespaceService.getPerkIdKey(), PersistentDataType.STRING);
+            String id2 = data2.get(namespaceService.getPerkIdKey(), PersistentDataType.STRING);
 
             // Compare the unique IDs
             return id1 != null && id1.equals(id2);
@@ -184,7 +185,7 @@ public class ItemService {
     // Function to check if ItemStack contains hidden rarity key
     public boolean hiddenItem(ItemStack item) {
         PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
-        String id = container.get(namespaceService.RARITY_KEY, PersistentDataType.STRING);
+        String id = container.get(namespaceService.getRarityKey(), PersistentDataType.STRING);
         if (id == null)
             return false; // No custom data is present or the custom data isn't a hidden rarity key
         return id.equals("HIDDEN");
@@ -208,7 +209,7 @@ public class ItemService {
             item.setType(Material.BEDROCK);
             // Update meta data identifier
             PersistentDataContainer data = meta.getPersistentDataContainer();
-            data.remove(namespaceService.PERK_ID_KEY);
+            data.remove(namespaceService.getPerkIdKey());
         } else {
             // Update the item's count in lore
             List<String> loreList = meta.getLore();
