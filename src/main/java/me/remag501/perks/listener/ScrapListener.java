@@ -1,6 +1,7 @@
 package me.remag501.perks.listener;
 
 import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.util.BGSColor;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
@@ -57,12 +58,12 @@ public class ScrapListener {
         int points = profile.scrapPerk(pending);
         String perkName = perkRegistry.getPerkItem(pending).getItemMeta().getDisplayName();
 
-        player.sendMessage("§6§lPERKS §8» §7Scrapped " + perkName + " §7for " + points + " points!");
+        player.sendMessage(BGSColor.PREFIX_PERKS + "Scrapped " + perkName + " §7for " + points + " points!");
         player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f);
     }
 
     private void handleCancel(Player player) {
-        player.sendMessage("§6§lPERKS §8» §7Scrapping cancelled.");
+        player.sendMessage(BGSColor.PREFIX_PERKS + "Scrapping cancelled.");
         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
     }
 }

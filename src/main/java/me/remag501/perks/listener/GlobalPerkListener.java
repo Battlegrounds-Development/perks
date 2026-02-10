@@ -1,6 +1,7 @@
 package me.remag501.perks.listener;
 
 import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.util.BGSColor;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.model.PerkProfile;
@@ -91,7 +92,7 @@ public class GlobalPerkListener {
             char colorCode = meta.getLore().get(0).charAt(1);
             String itemName = "§" + colorCode + "§l" + meta.getDisplayName();
 
-            player.sendMessage("§aYou have obtained " + itemName);
+            player.sendMessage(BGSColor.PREFIX_PERKS + "You have obtained " + itemName);
             profile.addOwnedPerk(perkType);
         }
     }
@@ -117,7 +118,7 @@ public class GlobalPerkListener {
 
         profile.removeOwnedPerk(droppedType);
         String starInfo = droppedType.isStarPerk() ? " §e" + "★".repeat(stars) : "";
-        player.sendMessage("§cYou have lost the perk " + perkItem.getItemMeta().getDisplayName() + starInfo);
+        player.sendMessage(BGSColor.PREFIX_PERKS + "You have lost the perk " + perkItem.getItemMeta().getDisplayName() + starInfo);
     }
 
     private void checkAllowedWorld(Player player) {

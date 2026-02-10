@@ -2,6 +2,7 @@ package me.remag501.perks.perk.impl;
 
 import me.remag501.bgscore.api.event.EventService;
 import me.remag501.bgscore.api.task.TaskService;
+import me.remag501.bgscore.api.util.BGSColor;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
@@ -86,7 +87,7 @@ public class Bloodied extends Perk {
         // Initial check to apply effects immediately on enable
         checkHealthAndApplyEffect(player);
 
-        player.sendMessage("§6§l(!) §6Bloodied activated! Threshold: " + (int)(state.healthThreshold * 100) + "%");
+        player.sendMessage(BGSColor.PREFIX_PERKS + "Bloodied activated! Threshold: " + (int)(state.healthThreshold * 100) + "%");
     }
 
     @Override
@@ -171,7 +172,7 @@ public class Bloodied extends Perk {
                 false
         ));
 
-        player.sendMessage("§c§l(!) §cYou feel the strength of bloodied rage!");
+        player.sendMessage(BGSColor.POSITIVE + "You feel the strength of bloodied rage!");
     }
 
     /**
@@ -205,7 +206,7 @@ public class Bloodied extends Perk {
         state.savedDuration = 0;
         state.savedAmplifier = 0;
 
-        player.sendMessage("§7Your strength fades as you heal.");
+        player.sendMessage(BGSColor.POSITIVE + "Your strength fades as you heal.");
     }
 
     // ==================== INNER CLASS ====================

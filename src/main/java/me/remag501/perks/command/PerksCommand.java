@@ -1,5 +1,6 @@
 package me.remag501.perks.command;
 
+import me.remag501.bgscore.api.util.BGSColor;
 import me.remag501.perks.model.PerkProfile;
 import me.remag501.perks.perk.PerkType;
 import me.remag501.perks.manager.PerkManager;
@@ -51,18 +52,18 @@ public class PerksCommand implements CommandExecutor {
                 } else if (args.length == 3) {
                     addPerk(sender, args[1], args[2]);
                 } else {
-                    sender.sendMessage("§6§lPERKS §8» §7Too many arguments");
+                    sender.sendMessage(BGSColor.PREFIX_PERKS + "Too many arguments");
                 }
                 return true;
             case "addpoints":
                 if (args.length == 1) {
-                    sender.sendMessage("§6§lPERKS §8» §7Usage: /perks addpoints <player> <points>");
+                    sender.sendMessage(BGSColor.PREFIX_PERKS + "Usage: /perks addpoints <player> <points>");
                 } else if (args.length == 2 && isNumeric(args[1])) {
                     addPerkPoints(sender.getName(), Integer.parseInt(args[1]));
                 } else if (args.length == 3 && isNumeric(args[2])) {
                     addPerkPoints(args[1], Integer.parseInt(args[2]));
                 } else if (args.length > 3) {
-                    sender.sendMessage("§6§lPERKS §8» §7Too many arguments");
+                    sender.sendMessage(BGSColor.PREFIX_PERKS + "Too many arguments");
                 }
                 return true;
             case "addcard":
@@ -73,7 +74,7 @@ public class PerksCommand implements CommandExecutor {
                 } else if (args.length == 3) {
                     addPerkCard(args[1], args[2]);
                 } else {
-                    sender.sendMessage("§6§lPERKS §8» §7Too many arguments");
+                    sender.sendMessage(BGSColor.PREFIX_PERKS + "Too many arguments");
                 }
                 return true;
             case "remove":
@@ -84,7 +85,7 @@ public class PerksCommand implements CommandExecutor {
                 } else if (args.length == 3) {
                     removePerk(sender, args[1], args[2]);
                 } else {
-                    sender.sendMessage("§6§lPERKS §8» §7Too many arguments");
+                    sender.sendMessage(BGSColor.PREFIX_PERKS + "Too many arguments");
                 }
                 return true;
             case "hiddenui":
@@ -94,7 +95,7 @@ public class PerksCommand implements CommandExecutor {
                 saveAll(sender);
                 return true;
             default:
-                sender.sendMessage("§6§lPERKS §8» §7Usage: reload/add/addpoints/addcard/remove/save");
+                sender.sendMessage(BGSColor.PREFIX_PERKS + "Usage: reload/add/addpoints/addcard/remove/save");
                 return true;
         }
     }
@@ -109,7 +110,7 @@ public class PerksCommand implements CommandExecutor {
     }
 
     private void printPerks(CommandSender sender) {
-        sender.sendMessage("You need to specify a perk type");
+        sender.sendMessage(BGSColor.PREFIX_PERKS + "You need to specify a perk type");
         StringBuilder rv = new StringBuilder();
         for (PerkType type : PerkType.values()) {
             rv.append(String.valueOf(type)).append(" ");
@@ -121,7 +122,7 @@ public class PerksCommand implements CommandExecutor {
         // Get player
         Player player = Bukkit.getPlayer(playerName);
         if (player == null) {
-            plugin.getLogger().info("Player " + playerName + " from add perk card could not be found.");
+            plugin.getLogger().info(BGSColor.PREFIX_PERKS + "Player " + playerName + " from add perk card could not be found.");
             return;
         }
 
@@ -130,7 +131,7 @@ public class PerksCommand implements CommandExecutor {
         try {
             perkType = PerkType.valueOf(perkName);
         } catch (Exception e) {
-            player.sendMessage("§6§lPERKS §8» §cInvalid perk type: " + perkName);
+            player.sendMessage(BGSColor.PREFIX_PERKS + "Invalid perk type: " + perkName);
             return;
         }
 
@@ -143,13 +144,13 @@ public class PerksCommand implements CommandExecutor {
         // Get player
         Player player = Bukkit.getPlayer(playerName);
         if (player == null) {
-            plugin.getLogger().info("Player " + playerName + " from add perk points could not be found.");
+            plugin.getLogger().info(BGSColor.PREFIX_PERKS + "Player " + playerName + " from add perk points could not be found.");
             return;
         }
 
         PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         profile.addPerkPoints(points);
-        player.sendMessage("§6§lPERKS §8» §7You received " + points + " perk points. Total: " + profile.getPerkPoints());
+        player.sendMessage(BGSColor.PREFIX_PERKS + "You received " + points + " perk points. Total: " + profile.getPerkPoints());
     }
 
     private void addPerk(Player player, String perkName) {
@@ -158,7 +159,7 @@ public class PerksCommand implements CommandExecutor {
         try {
             perk = PerkType.valueOf(perkName);
         } catch (Exception e) {
-            player.sendMessage("§6§lPERKS §8» §cInvalid perk type: " + perkName);
+            player.sendMessage(BGSColor.PREFIX_PERKS + "Invalid perk type: " + perkName);
             return;
         }
 
@@ -167,12 +168,12 @@ public class PerksCommand implements CommandExecutor {
 
         // Add perk to player's owned perks list
         if (profile.addOwnedPerk(perk)) {
-            player.sendMessage("§6§lPERKS §8» §7Added perk: " + perk.getDisplayName());
+            player.sendMessage(BGSColor.PREFIX_PERKS + "Added perk: " + perk.getDisplayName());
         } else {
             // Auto-scrap if at max quantity
             int points = profile.scrapPerk(perk);
             profile.addOwnedPerk(perk);
-            player.sendMessage("§6§lPERKS §8» §7You already had 3 of this perk. Auto-scrapped one for " + points + " points.");
+            player.sendMessage(BGSColor.PREFIX_PERKS + "You already had 3 of this perk. Auto-scrapped one for " + points + " points.");
         }
     }
 
@@ -227,7 +228,7 @@ public class PerksCommand implements CommandExecutor {
         sender.sendMessage("§6§lPERKS §8» §aAll perk data saved!");
 
         // Note: Full reload would require plugin reload
-        sender.sendMessage("§6§lPERKS §8» §7Note: Config reload requires plugin restart");
+        sender.sendMessage(BGSColor.PREFIX_PERKS + "Note: Config reload requires plugin restart");
     }
 
     private void saveAll(CommandSender sender) {

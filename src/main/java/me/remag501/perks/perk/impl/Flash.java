@@ -1,6 +1,7 @@
 package me.remag501.perks.perk.impl;
 
 import me.remag501.bgscore.api.task.TaskService;
+import me.remag501.bgscore.api.util.BGSColor;
 import me.remag501.perks.manager.PerkManager;
 import me.remag501.perks.perk.Perk;
 import me.remag501.perks.perk.PerkType;
@@ -53,8 +54,6 @@ public class Flash extends Perk {
             applyWeakness(player);
             return false;
         });
-
-        player.sendMessage("§a§l(!) §aFlash activated! Speed I applied, but weakness every 2 minutes!");
     }
 
     @Override
@@ -98,6 +97,6 @@ public class Flash extends Perk {
                 true // Show particles
         ));
 
-        player.sendMessage("§c§l(!) §cYou feel weak from running too fast!");
+        player.sendMessage(BGSColor.NEGATIVE + "You feel weak from running too fast!");
     }
 }
