@@ -1,8 +1,9 @@
 name: Perks
 version: 2.0.0
-main: me.remag501.perks.Perks
+
+main: me.remag501.perk.PerksPlugin
 api-version: 1.21
-author: remag501
+author: Remag501
 description: A comprehensive perk system for Minecraft servers
 
 commands:
