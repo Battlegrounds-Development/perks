@@ -1,5 +1,5 @@
-name: Perks
-version: 2.0.0
+name: ${project.name}
+version: ${project.version}
 
 main: me.remag501.perk.PerksPlugin
 api-version: 1.21
