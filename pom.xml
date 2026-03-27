@@ -9,7 +9,7 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Perks</name>
+    <name>BGSPerks</name>
 
     <properties>
         <java.version>21</java.version>
@@ -39,6 +39,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <finalName>{project.name}-${project.version}</finalName>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
+                </configuration>
             </plugin>
         </plugins>
         <resources>
