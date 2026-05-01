@@ -1,6 +1,6 @@
 package me.remag501.perk.listener;
 
-import me.remag501.bgscore.api.event.EventService;
+import me.remag501.core.api.event.EventService;
 import me.remag501.perk.manager.GambleManager;
 import me.remag501.perk.ui.PerkMenu;
 import org.bukkit.Material;

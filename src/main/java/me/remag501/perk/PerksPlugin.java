@@ -1,10 +1,10 @@
 package me.remag501.perk;
 
-import me.remag501.bgscore.api.BGSApi;
-import me.remag501.bgscore.api.command.CommandService;
-import me.remag501.bgscore.api.event.EventService;
-import me.remag501.bgscore.api.namespace.NamespaceService;
-import me.remag501.bgscore.api.task.TaskService;
+import me.remag501.core.api.BGSApi;
+import me.remag501.core.api.command.CommandService;
+import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.namespace.NamespaceService;
+import me.remag501.core.api.task.TaskService;
 import me.remag501.perk.command.PerksCommand;
 import me.remag501.perk.command.PerksCompleter;
 import me.remag501.perk.listener.GambleListener;

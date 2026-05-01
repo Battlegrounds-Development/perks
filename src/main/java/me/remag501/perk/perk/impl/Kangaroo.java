@@ -1,10 +1,10 @@
 package me.remag501.perk.perk.impl;
 
-import me.remag501.bgscore.api.BGSApi;
-import me.remag501.bgscore.api.ability.AbilityDisplay;
-import me.remag501.bgscore.api.ability.AbilityService;
-import me.remag501.bgscore.api.event.EventService;
-import me.remag501.bgscore.api.task.TaskService;
+import me.remag501.core.api.BGSApi;
+import me.remag501.core.api.ability.AbilityDisplay;
+import me.remag501.core.api.ability.AbilityService;
+import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.task.TaskService;
 import me.remag501.perk.manager.PerkManager;
 import me.remag501.perk.perk.Perk;
 import me.remag501.perk.perk.PerkType;

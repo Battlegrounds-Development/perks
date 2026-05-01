@@ -1,6 +1,6 @@
 package me.remag501.perk.service;
 
-import me.remag501.bgscore.api.namespace.NamespaceService;
+import me.remag501.core.api.namespace.NamespaceService;
 import me.remag501.perk.perk.PerkType;
 import me.remag501.perk.util.ItemUtil;
 import org.bukkit.Bukkit;

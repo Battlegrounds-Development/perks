@@ -1,7 +1,7 @@
 package me.remag501.perk.perk.impl;
 
-import me.remag501.bgscore.api.task.TaskService;
-import me.remag501.bgscore.api.util.BGSColor;
+import me.remag501.core.api.task.TaskService;
+import me.remag501.core.api.util.BGSColor;
 import me.remag501.perk.manager.PerkManager;
 import me.remag501.perk.perk.Perk;
 import me.remag501.perk.perk.PerkType;

@@ -1,6 +1,6 @@
 package me.remag501.perk.listener;
 
-import me.remag501.bgscore.api.event.EventService;
+import me.remag501.core.api.event.EventService;
 import me.remag501.perk.perk.PerkType;
 import me.remag501.perk.manager.PerkManager;
 import me.remag501.perk.model.PerkProfile;

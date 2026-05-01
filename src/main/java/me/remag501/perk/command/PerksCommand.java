@@ -1,6 +1,6 @@
 package me.remag501.perk.command;
 
-import me.remag501.bgscore.api.util.BGSColor;
+import me.remag501.core.api.util.BGSColor;
 import me.remag501.perk.model.PerkProfile;
 import me.remag501.perk.perk.PerkType;
 import me.remag501.perk.manager.PerkManager;
