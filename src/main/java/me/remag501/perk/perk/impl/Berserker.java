@@ -1,47 +1,58 @@
-//package me.remag501.perks.perk.impl;
-//
-//import me.remag501.perks.Perks;
-//import me.remag501.perks.perk.Perk;
-//import me.remag501.perks.perk.PerkType;
-//import me.remag501.perks.manager.PerkManager;
-//import me.remag501.perks.model.PerkProfile;
-//import org.bukkit.*;
-//import org.bukkit.entity.Player;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.entity.EntityDamageByEntityEvent;
-//import org.bukkit.inventory.ItemStack;
-//
-//import java.util.*;
-//import java.util.concurrent.ConcurrentHashMap;
-//
-//public class Berserker extends Perk {
-//    private final Map<UUID, Queue<Double>> fistDamageLog = new ConcurrentHashMap<>();
-//
-//    public Berserker(Perks plugin) {
-//        super(plugin, null);
-//    }
-//
-//    @Override
-//    public void onEnable(Player player, int stars) {
-//        fistDamageLog.put(player.getUniqueId(), new ArrayDeque<>());
-//    }
-//
-//    @EventHandler
-//    public void onEntityHit(EntityDamageByEntityEvent event) {
-//        if (!(event.getDamager() instanceof Player player)) return;
-//
-//        // Dependency Injection: Use the plugin instance to get the manager
-//        PerkProfile profile = plugin.getPerkManager().getProfile(player.getUniqueId());
-//        if (profile == null || !profile.isEquipped(PerkType.BERSERKER)) return;
-//
-//        // ... damage logic ...
-//
-//        // Use injected plugin for tasks instead of Bukkit.getPlugin(...)
-//        Bukkit.getScheduler().runTaskLater(plugin, () -> log.poll(), 60L);
-//    }
-//
-//    @Override
-//    public void onDisable(Player player) {
-//        fistDamageLog.remove(player.getUniqueId());
-//    }
-//}
+package me.remag501.perk.perk.impl;
+
+import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.util.BGSColor;
+import me.remag501.perk.perk.Perk;
+import me.remag501.perk.perk.PerkType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+
+import java.util.ArrayDeque;
+import java.util.Map;
+import java.util.Queue;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Berserker extends Perk {
+
+	private static final double DAMAGE_INCREASE_PER_HIT = 0.10;
+	private static final int LOG_WINDOW_HITS = 5;
+
+	private final Map<UUID, Queue<Double>> fistDamageLog = new ConcurrentHashMap<>();
+	private final EventService eventService;
+
+	public Berserker(EventService eventService) {
+		super(PerkType.BERSERKER);
+		this.eventService = eventService;
+	}
+
+	@Override
+	public void onEnable(Player player, int stars) {
+		UUID uuid = player.getUniqueId();
+		fistDamageLog.put(uuid, new ArrayDeque<>());
+
+		eventService.subscribe(EntityDamageByEntityEvent.class)
+				.owner(uuid)
+				.namespace(getType().getId())
+				.filter(event -> event.getDamager() instanceof Player p && p.getUniqueId().equals(uuid))
+				.handler(event -> {
+					Queue<Double> log = fistDamageLog.get(uuid);
+					if (log != null) {
+						log.offer(event.getDamage());
+						if (log.size() > LOG_WINDOW_HITS) {
+							log.poll();
+						}
+						double bonusDamage = log.size() * DAMAGE_INCREASE_PER_HIT;
+						double newDamage = event.getDamage() * (1.0 + bonusDamage);
+						event.setDamage(newDamage);
+						player.sendMessage(BGSColor.POSITIVE + "Berserker stacked! (" + log.size() + "/5)");
+					}
+				});
+	}
+
+	@Override
+	public void onDisable(Player player) {
+		fistDamageLog.remove(player.getUniqueId());
+		eventService.unregisterListener(player.getUniqueId(), getType().getId());
+	}
+}

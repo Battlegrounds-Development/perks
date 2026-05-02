@@ -1,43 +1,45 @@
-//package me.remag501.perks.perk.impl;
-//
-//import me.remag501.perks.perk.Perk;
-//import org.bukkit.entity.Player;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.entity.EntityDamageByEntityEvent;
-//
-//import java.util.UUID;
-//import java.util.concurrent.ThreadLocalRandom;
-//
-//import org.bukkit.inventory.ItemStack;
-//
-//public class Serendipity extends Perk {
-//
-//    public Serendipity(ItemStack item) {
-//        super(item);
-//    }
-//
-//    @Override
-//    public void onEnable() {
-//    }
-//
-//    @Override
-//    public void onDisable() {
-//    }
-//
-//    @EventHandler
-//    public void onPlayerDamage(EntityDamageByEntityEvent event) {
-//        if (!(event.getEntity() instanceof Player player)) return;
-//
-//        if (event.getDamager() instanceof Player) return; // Perk does not apply to players
-//
-//        UUID uuid = player.getUniqueId();
-//        Serendipity perk = (Serendipity) getPerk(uuid);
-//        if (perk == null) return; // Player doesn't have the perk equipped
-//
-//        if (ThreadLocalRandom.current().nextDouble() < 0.20) {
-//            event.setCancelled(true); // Negate damage
-//            player.sendMessage("§a§l(!) §aSerendipity activated! You took no damage.");
-//        }
-//    }
-//}
-//
+package me.remag501.perk.perk.impl;
+
+import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.util.BGSColor;
+import me.remag501.perk.perk.Perk;
+import me.remag501.perk.perk.PerkType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+
+public class Serendipity extends Perk {
+
+	private static final double PROC_CHANCE = 0.20;
+
+	private final EventService eventService;
+
+	public Serendipity(EventService eventService) {
+		super(PerkType.SERENDIPITY);
+		this.eventService = eventService;
+	}
+
+	@Override
+	public void onEnable(Player player, int stars) {
+		UUID uuid = player.getUniqueId();
+
+		eventService.subscribe(EntityDamageByEntityEvent.class)
+				.owner(uuid)
+				.namespace(getType().getId())
+				.filter(event -> event.getEntity().getUniqueId().equals(uuid))
+				.filter(event -> !(event.getDamager() instanceof Player))
+				.handler(event -> {
+					if (ThreadLocalRandom.current().nextDouble() < PROC_CHANCE) {
+						event.setCancelled(true);
+						player.sendMessage(BGSColor.POSITIVE + "Serendipity activated! You took no damage.");
+					}
+				});
+	}
+
+	@Override
+	public void onDisable(Player player) {
+		eventService.unregisterListener(player.getUniqueId(), getType().getId());
+	}
+}

@@ -5,9 +5,30 @@ import me.remag501.core.api.task.TaskService;
 import me.remag501.perk.manager.PerkManager;
 import me.remag501.perk.perk.Perk;
 import me.remag501.perk.perk.PerkType;
+import me.remag501.perk.perk.impl.Berserker;
 import me.remag501.perk.perk.impl.Bloodied;
 import me.remag501.perk.perk.impl.Flash;
+import me.remag501.perk.perk.impl.FlowerPower;
+import me.remag501.perk.perk.impl.GuerillaTactics;
+import me.remag501.perk.perk.impl.HotHandsPerk;
+import me.remag501.perk.perk.impl.Jumper;
 import me.remag501.perk.perk.impl.Kangaroo;
+import me.remag501.perk.perk.impl.LowMaintenance;
+import me.remag501.perk.perk.impl.Overdrive;
+import me.remag501.perk.perk.impl.Resistant;
+import me.remag501.perk.perk.impl.Serendipity;
+import me.remag501.perk.perk.impl.SneakAttack;
+import me.remag501.perk.perk.impl.Undead;
+import me.remag501.perk.perk.impl.BountyHunter;
+import me.remag501.perk.perk.impl.Concussion;
+import me.remag501.perk.perk.impl.CookieClicker;
+import me.remag501.perk.perk.impl.GhostFist;
+import me.remag501.perk.perk.impl.TaiChi;
+import me.remag501.perk.perk.impl.XPFarm;
+import me.remag501.perk.perk.impl.PackMaster;
+import me.remag501.perk.perk.impl.Feral;
+import me.remag501.perk.perk.impl.Jumped;
+import me.remag501.perk.perk.impl.WolfBounded;
 import me.remag501.perk.service.ItemService;
 import org.bukkit.inventory.ItemStack;
 
@@ -38,10 +59,36 @@ public class PerkRegistry {
     }
 
     public void init(PerkManager perkManager) {
-        // Register KANGAROO perk
+        // Register all perks
+        // Pack / wolf related perks first so dependent perks can reference PackMaster
+        registerPerk(PerkType.PACK_MASTER, new PackMaster(eventService));
         registerPerk(PerkType.KANGAROO, new Kangaroo(eventService, taskService, perkManager));
         registerPerk(PerkType.BLOODIED, new Bloodied(eventService, taskService, perkManager));
         registerPerk(PerkType.FLASH, new Flash(taskService, perkManager));
+        registerPerk(PerkType.LOW_MAINTENANCE, new LowMaintenance(taskService, perkManager));
+        registerPerk(PerkType.JUMPER, new Jumper(taskService, perkManager));
+        registerPerk(PerkType.RESISTANT, new Resistant(eventService, taskService, perkManager));
+        registerPerk(PerkType.SERENDIPITY, new Serendipity(eventService));
+        registerPerk(PerkType.OVERDRIVE, new Overdrive(eventService));
+        registerPerk(PerkType.HOT_HANDS, new HotHandsPerk(eventService));
+        registerPerk(PerkType.BERSERKER, new Berserker(eventService));
+        registerPerk(PerkType.SNEAK_ATTACK, new SneakAttack(eventService));
+        registerPerk(PerkType.FLOWER_POWER, new FlowerPower(eventService));
+        registerPerk(PerkType.GUERRILLA_TACTICS, new GuerillaTactics(eventService, taskService));
+        registerPerk(PerkType.UNDEAD, new Undead(eventService));
+        // Migrated legacy perks
+        registerPerk(PerkType.BOUNTY_HUNTER, new BountyHunter(eventService));
+        registerPerk(PerkType.CONCUSSION, new Concussion(eventService));
+        registerPerk(PerkType.COOKIE_CLICKER, new CookieClicker(eventService));
+        registerPerk(PerkType.GHOST_FIST, new GhostFist(eventService, taskService));
+        registerPerk(PerkType.TAI_CHI, new TaiChi(eventService));
+        registerPerk(PerkType.XP_FARM, new XPFarm(eventService));
+
+        // Wolf-related perks that depend on PackMaster
+        PackMaster packMaster = (PackMaster) getPerk(PerkType.PACK_MASTER);
+        registerPerk(PerkType.FERAL, new Feral(eventService, packMaster));
+        registerPerk(PerkType.JUMPED, new Jumped(eventService, packMaster));
+        registerPerk(PerkType.WOLF_BOUNDED, new WolfBounded(eventService, taskService, packMaster));
     }
 
     private void registerPerk(PerkType type, Perk perk) {

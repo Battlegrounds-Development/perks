@@ -1,102 +1,74 @@
-//package me.remag501.perks.perk.impl;
-//
-//import me.remag501.perks.perk.Perk;
-//import me.remag501.perks.perk.PerkType;
-//import org.bukkit.Bukkit;
-//import org.bukkit.entity.Entity;
-//import org.bukkit.entity.LivingEntity;
-//import org.bukkit.entity.Player;
-//import org.bukkit.entity.Wolf;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.entity.EntityDamageByEntityEvent;
-//import org.bukkit.inventory.ItemStack;
-//import org.bukkit.Location;
-//
-//import java.util.UUID;
-//import java.util.concurrent.ConcurrentHashMap;
-//
-//public class Jumped extends Perk {
-//
-//    // Assuming you have a way to define this static type, e.g., in your PerkType enum.
-//    private static final PerkType PACK_MASTER_TYPE = PerkType.PACK_MASTER;
-//
-//    // State to track the last hit time for the "first hit" logic (spam prevention)
-//    private static final long FIRST_HIT_WINDOW_MILLIS = 500;
-//    private static final java.util.Map<UUID, Long> LAST_HIT_TIME = new ConcurrentHashMap<>();
-//
-//    public Jumped(ItemStack perkItem) {
-//        // You would pass the requirement list here: List<List<PerkType>> containing PackMaster
-//        super(perkItem);
-//    }
-//
-//    @Override
-//    public void onEnable() {}
-//
-//    @Override
-//    public void onDisable() {
-//        LAST_HIT_TIME.clear(); // Clean up static state on server reload/disable
-//    }
-//
-//    // --- Event Handling (On the PROTOTYPE Listener) ---
-//
-//    @EventHandler(ignoreCancelled = true)
-//    public void onFirstHit(EntityDamageByEntityEvent event) {
-//        if (!(event.getDamager() instanceof Player player)) return;
-//        if (!(event.getEntity() instanceof LivingEntity victim)) return;
-//
-//        UUID playerId = player.getUniqueId();
-//
-//        // 1. Centralized Lookup: Get the active, cloned instance of JUMPED
-//        // (This ensures the player has THIS perk equipped)
-//        // NOTE: Uses the player's own PerkType for the lookup.
-//        Jumped jumpedPerk = (Jumped) getPerk(playerId);
-//        if (jumpedPerk == null) return;
-//
-//        // 2. Check "First Hit" Condition (Spam prevention)
-//        long currentTime = System.currentTimeMillis();
-//        Long lastHit = LAST_HIT_TIME.get(playerId);
-//        if (lastHit != null && (currentTime - lastHit) < FIRST_HIT_WINDOW_MILLIS) {
-//            return;
-//        }
-//        LAST_HIT_TIME.put(playerId, currentTime);
-//
-//
-//        // 3. CORE PROOF OF CONCEPT: Access the required PackMaster instance.
-//        // This is the cleanest way to retrieve the instance and its state.
-//        PackMaster packMaster = (PackMaster) Perk.getPerk(playerId, PACK_MASTER_TYPE);
-//
-//        if (packMaster != null) {
-//            // 4. Use the state from the required perk to perform the action
-//            jumpedPerk.teleportWolvesToTarget(player, packMaster, victim);
-//        }
-//    }
-//
-//    /**
-//     * Teleports all wolves owned by the player (as tracked by PackMaster) to the victim.
-//     */
-//    private void teleportWolvesToTarget(Player owner, PackMaster packMaster, LivingEntity target) {
-//        if (packMaster.getSummonedWolves().isEmpty()) {
-//            return;
-//        }
-//
-//        // Get the target location (slightly above the entity to avoid clipping)
-//        Location targetLoc = target.getLocation().add(0.0, 0.5, 0.0);
-//
-//        int teleportCount = 0;
-//
-//        // Iterate through the UUIDs provided by the PackMaster instance's state
-//        for (UUID wolfId : packMaster.getSummonedWolves()) {
-//            Entity entity = Bukkit.getEntity(wolfId);
-//
-//            // Safety check: ensure it's a valid, tamed wolf owned by the player
-//            if (entity instanceof Wolf wolf && wolf.isTamed() && owner.equals(wolf.getOwner())) {
-//                wolf.teleport(targetLoc);
-//                teleportCount++;
-//            }
-//        }
-//
-//        if (teleportCount > 0) {
-//            owner.sendMessage("§bJUMPED! §c" + target.getName() + " is being jumped by " + teleportCount + " wolves!");
-//        }
-//    }
-//}
+package me.remag501.perk.perk.impl;
+
+import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.util.BGSColor;
+import me.remag501.perk.perk.Perk;
+import me.remag501.perk.perk.PerkType;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Jumped extends Perk {
+
+	private static final long FIRST_HIT_WINDOW_MILLIS = 500;
+	private static final Map<UUID, Long> LAST_HIT_TIME = new ConcurrentHashMap<>();
+
+	private final EventService eventService;
+	private final PackMaster packMaster;
+
+	public Jumped(EventService eventService, PackMaster packMaster) {
+		super(PerkType.JUMPED);
+		this.eventService = eventService;
+		this.packMaster = packMaster;
+	}
+
+	@Override
+	public void onEnable(Player player, int stars) {
+		UUID playerId = player.getUniqueId();
+		eventService.subscribe(EntityDamageByEntityEvent.class)
+				.owner(playerId)
+				.namespace(getType().getId())
+				.filter(event -> event.getDamager() instanceof Player p && p.getUniqueId().equals(playerId))
+				.handler(event -> handleFirstHit(event, player));
+	}
+
+	private void handleFirstHit(EntityDamageByEntityEvent event, Player player) {
+		UUID playerId = player.getUniqueId();
+		long currentTime = System.currentTimeMillis();
+		Long last = LAST_HIT_TIME.get(playerId);
+		if (last != null && (currentTime - last) < FIRST_HIT_WINDOW_MILLIS) return;
+		LAST_HIT_TIME.put(playerId, currentTime);
+
+		if (!(event.getEntity() instanceof LivingEntity victim)) return;
+
+		List<UUID> wolves = packMaster.getSummonedWolves(playerId);
+		if (wolves.isEmpty()) return;
+
+		Location targetLoc = victim.getLocation().add(0.0, 0.5, 0.0);
+		int teleported = 0;
+		for (UUID wolfId : wolves) {
+			Entity e = Bukkit.getEntity(wolfId);
+			if (e instanceof org.bukkit.entity.Wolf w && w.isTamed() && player.equals(w.getOwner())) {
+				w.teleport(targetLoc);
+				teleported++;
+			}
+		}
+
+		if (teleported > 0) {
+			player.sendMessage(BGSColor.POSITIVE + "JUMPED! " + (victim.getCustomName() != null ? victim.getCustomName() : victim.getType().name()) + " is being jumped by " + teleported + " wolves!");
+		}
+	}
+
+	@Override
+	public void onDisable(Player player) {
+		eventService.unregisterListener(player.getUniqueId(), getType().getId());
+	}
+}

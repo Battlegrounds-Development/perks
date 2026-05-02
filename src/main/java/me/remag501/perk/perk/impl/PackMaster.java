@@ -1,139 +1,124 @@
-//package me.remag501.perks.perk.impl;
-//
-//import me.remag501.perks.perk.Perk;
-//import org.bukkit.Bukkit;
-//import org.bukkit.Sound;
-//import org.bukkit.entity.*;
-//import org.bukkit.event.EventHandler;
-//import org.bukkit.event.entity.EntityDeathEvent;
-//import org.bukkit.event.entity.PlayerDeathEvent;
-//import org.bukkit.inventory.ItemStack;
-//import org.bukkit.Location;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.UUID;
-//
-///**
-// * PackMaster Perk:
-// * Effect: A wolf is summoned upon killing a player.
-// * Requirements: Must track summoned wolves and despawn them on perk unequip.
-// */
-//public class PackMaster extends Perk {
-//
-//    // Unique state for THIS cloned instance: List of wolves summoned by this perk
-//    private final List<UUID> summonedWolves;
-//
-//    public PackMaster(ItemStack perkItem) {
-//        super(perkItem);
-//        summonedWolves = new ArrayList<>();
-//    }
-//
-//    // --- Per-Player Lifecycle Hooks ---
-//
-//    @Override
-//    public void onEnable() {
-//    }
-//
-//    @Override
-//    public void onDisable() {
-//        // Despawn all owned wolves when the perk is deactivated
-//        this.despawnAllWolves();
-//    }
-//
-//    // --- Event Handling (On the PROTOTYPE Listener) ---
-//
-//    @EventHandler(ignoreCancelled = true)
-//    public void onPlayerKill(PlayerDeathEvent event) {
-//        Player killer = event.getEntity().getKiller();
-//        if (killer == null) return; // Not killed by a player
-//
-//        UUID killerUuid = killer.getUniqueId();
-//
-//        // 1. Centralized Lookup: Get the active, cloned instance for the killer
-//        PackMaster perk = (PackMaster) getPerk(killerUuid);
-//        if (perk == null) return; // Killer doesn't have the perk equipped
-//
-//        // 2. Summon the wolf
-//        perk.summonWolf(killer);
-//    }
-//
-//    @EventHandler
-//    public void onWolfDeath(EntityDeathEvent event) {
-//        Entity entity = event.getEntity();
-//        if (!(entity instanceof Wolf wolf))
-//            return;
-//
-//        AnimalTamer tamer = wolf.getOwner();
-//        if (tamer != null) {
-//            PackMaster perk = (PackMaster) getPerk(tamer.getUniqueId());
-//            if (perk != null) {
-//                perk.summonedWolves.remove(entity.getUniqueId());
-//            }
-//        }
-//    }
-//
-//    /**
-//     * Spawns a tamed wolf for the player and registers it to this perk instance.
-//     */
-//    private void summonWolf(Player owner) {
-//
-//        if (this.summonedWolves.size() >= 10) {
-//            owner.playSound(owner, Sound.ENTITY_WOLF_GROWL, 5, 0);
-//            Wolf minWolf = null;
-//            double minHP = 100;
-//
-//            // Find lowest hp wolf
-//            for (UUID wolfUUID: summonedWolves) {
-//                Wolf wolfEntity = (Wolf) Bukkit.getEntity(wolfUUID);
-//                if (wolfEntity.getHealth() < minHP) {
-//                    minWolf = wolfEntity;
-//                    minHP = minWolf.getHealth();
-//                }
-//            }
-//
-//            // Heal lowest hp wolf
-//            minWolf.setHealth(20);
-//            owner.sendMessage("§c§l(!) §cYou have reached the maximum amount of wolves. Lowest HP wolf has been healed!");
-//            return;
-//        }
-//
-//        // Spawn the wolf at the owner's location
-//        Location location = owner.getLocation();
-//        Wolf wolf = (Wolf) location.getWorld().spawnEntity(location, EntityType.WOLF);
-//
-//        // Tame the wolf and set the owner
-//        wolf.setTamed(true);
-//        wolf.setOwner(owner);
-////        wolf.setCollarColor(DyeColor.BROWN); // Optional: differentiate perk wolves
-//
-//        // Add visual feedback (sound/message)
-//        owner.sendMessage("§a§l(!) §aA new wolf joins your pack!");
-//        owner.playSound(owner, Sound.ENTITY_WOLF_WHINE, 1, 0);
-//
-//        // Add the wolf's UUID to the instance state for tracking/cleanup
-//        this.summonedWolves.add(wolf.getUniqueId());
-//    }
-//
-//    /**
-//     * Despawns all wolves tracked by this specific perk instance.
-//     */
-//    private void despawnAllWolves() {
-//        if (this.summonedWolves.isEmpty()) return;
-//
-//        // Iterate through all UUIDs and attempt to find and remove the entity
-//        for (UUID wolfUuid : this.summonedWolves) {
-//            Entity entity = Bukkit.getEntity(wolfUuid);
-//            if (entity != null && entity.isValid() && entity.getType() == EntityType.WOLF) {
-//                entity.remove();
-//            }
-//        }
-//
-//        // Clear the list after removal
-//        this.summonedWolves.clear();
-//    }
-//
-//    public List<UUID> getSummonedWolves() {
-//        return summonedWolves;
-//    }
-//}
+package me.remag501.perk.perk.impl;
+
+import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.util.BGSColor;
+import me.remag501.perk.perk.Perk;
+import me.remag501.perk.perk.PerkType;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Wolf;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+public class PackMaster extends Perk {
+
+	private final EventService eventService;
+	private final Map<UUID, List<UUID>> summonedWolves = new ConcurrentHashMap<>();
+
+	public PackMaster(EventService eventService) {
+		super(PerkType.PACK_MASTER);
+		this.eventService = eventService;
+
+		// Global listener to clean up dead wolves and remove them from owner tracking
+		eventService.subscribe(EntityDeathEvent.class)
+				.handler(event -> {
+					Entity entity = event.getEntity();
+					if (!(entity instanceof Wolf wolf)) return;
+					if (wolf.getOwner() == null) return;
+					UUID ownerId = wolf.getOwner().getUniqueId();
+					List<UUID> list = summonedWolves.get(ownerId);
+					if (list != null) {
+						list.remove(wolf.getUniqueId());
+					}
+				});
+	}
+
+	@Override
+	public void onEnable(Player player, int stars) {
+		summonedWolves.put(player.getUniqueId(), new CopyOnWriteArrayList<>());
+
+		UUID uuid = player.getUniqueId();
+		// Subscribe to their kills (per-player) to summon wolves
+		eventService.subscribe(PlayerDeathEvent.class)
+				.owner(uuid)
+				.namespace(getType().getId())
+				.filter(event -> {
+					Player killer = event.getEntity().getKiller();
+					return killer != null && killer.getUniqueId().equals(uuid);
+				})
+				.handler(event -> {
+					Player killer = event.getEntity().getKiller();
+					if (killer == null) return;
+					summonWolf(killer);
+				});
+	}
+
+	@Override
+	public void onDisable(Player player) {
+		UUID uuid = player.getUniqueId();
+		despawnAllWolves(uuid);
+		summonedWolves.remove(uuid);
+		eventService.unregisterListener(uuid, getType().getId());
+	}
+
+	private void summonWolf(Player owner) {
+		UUID ownerId = owner.getUniqueId();
+		List<UUID> list = summonedWolves.computeIfAbsent(ownerId, k -> new CopyOnWriteArrayList<>());
+
+		if (list.size() >= 10) {
+			owner.playSound(owner.getLocation(), Sound.ENTITY_WOLF_GROWL, 1f, 1f);
+			// find lowest hp wolf and heal
+			Wolf minWolf = null;
+			double minHP = Double.MAX_VALUE;
+			for (UUID id : list) {
+				Entity e = Bukkit.getEntity(id);
+				if (e instanceof Wolf w && w.isValid()) {
+					if (w.getHealth() < minHP) {
+						minHP = w.getHealth();
+						minWolf = w;
+					}
+				}
+			}
+			if (minWolf != null) {
+				minWolf.setHealth(minWolf.getMaxHealth());
+				owner.sendMessage(BGSColor.NEGATIVE + "You have reached the maximum wolves; healed lowest-HP wolf.");
+			}
+			return;
+		}
+
+		Location loc = owner.getLocation();
+		Wolf wolf = (Wolf) owner.getWorld().spawnEntity(loc, EntityType.WOLF);
+		wolf.setTamed(true);
+		wolf.setOwner(owner);
+
+		owner.sendMessage(BGSColor.POSITIVE + "A new wolf joins your pack!");
+		owner.playSound(owner.getLocation(), Sound.ENTITY_WOLF_AMBIENT, 1f, 1f);
+
+		list.add(wolf.getUniqueId());
+	}
+
+	private void despawnAllWolves(UUID ownerId) {
+		List<UUID> list = summonedWolves.get(ownerId);
+		if (list == null || list.isEmpty()) return;
+		for (UUID id : list) {
+            Entity e = Bukkit.getEntity(id);
+            if (e != null) e.remove();
+		}
+		list.clear();
+	}
+
+	public List<UUID> getSummonedWolves(UUID ownerId) {
+		return summonedWolves.getOrDefault(ownerId, List.of());
+	}
+}
+
