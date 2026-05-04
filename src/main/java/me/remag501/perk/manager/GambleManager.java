@@ -4,10 +4,7 @@ import me.remag501.perk.model.PerkProfile;
 import me.remag501.perk.perk.PerkType;
 import me.remag501.perk.registry.PerkRegistry;
 import me.remag501.perk.ui.GambleMenu;
-import org.bukkit.Bukkit;
-import org.bukkit.EntityEffect;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -48,7 +45,7 @@ public class GambleManager {
 
         // Process Result
         if (perkProfile.addOwnedPerk(rolledType)) {
-            player.sendMessage("§6§lPERKS §8» §7You obtained: " + perkRegistry.getPerkItem(rolledType).getItemMeta().getDisplayName());
+            player.sendMessage("§6§lPERKS §8» §7You obtained: " + ChatColor.GOLD + rolledType.getDisplayName());
         } else {
             int points = perkProfile.scrapPerk(rolledType);
             perkProfile.addOwnedPerk(rolledType);

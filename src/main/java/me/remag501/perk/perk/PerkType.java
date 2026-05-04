@@ -85,4 +85,8 @@ public enum PerkType {
         return requirements;
     }
 
+    public String getOraxenId() {
+        return "perks_" + this.name().toLowerCase();
+    }
+
 }

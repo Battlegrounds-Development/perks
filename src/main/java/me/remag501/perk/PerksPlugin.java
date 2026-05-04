@@ -4,6 +4,7 @@ import me.remag501.core.api.BGSApi;
 import me.remag501.core.api.command.CommandService;
 import me.remag501.core.api.event.EventService;
 import me.remag501.core.api.namespace.NamespaceService;
+import me.remag501.core.api.oraxen.OraxenService;
 import me.remag501.core.api.task.TaskService;
 import me.remag501.perk.command.PerksCommand;
 import me.remag501.perk.command.PerksCompleter;
@@ -41,13 +42,14 @@ public class PerksPlugin extends JavaPlugin {
         EventService eventService = BGSApi.events();
         TaskService taskService = BGSApi.tasks();
         NamespaceService namespaceService = BGSApi.namespaces();
+        OraxenService oraxenService = BGSApi.oraxen();
 
-                // 2. Load configuration first
+        // 2. Load configuration first
         worldRegistry = new WorldRegistry();
         loadConfiguration();
 
         // 3. Initialize singletons in correct order
-        ItemService itemService = new ItemService(namespaceService);
+        ItemService itemService = new ItemService(namespaceService, oraxenService);
 
         PerkRegistry perkRegistry = new PerkRegistry(eventService, taskService, itemService);
         ConfigManager configManager = new ConfigManager(this, "perks.yml"); // Access plugin's folder config
@@ -65,13 +67,13 @@ public class PerksPlugin extends JavaPlugin {
         new GambleListener(eventService, gambleManager, perkMenu);
         new ScrapListener(eventService, perkManager, perkRegistry, perkMenu);
 
-        // 4. Register commands
-        PerksCommand perksCommand = new PerksCommand(this, perkManager, perkMenu, itemService);
+        // 5. Register commands
+        PerksCommand perksCommand = new PerksCommand(this, perkManager, perkMenu, itemService, perkRegistry);
         this.getCommand("perks").setExecutor(perksCommand);
         this.getCommand("perks").setTabCompleter(new PerksCompleter(this));
         commandService.registerSubcommand("perk", perksCommand);
 
-        // 5. Load perks for online players (in case of reload)
+        // Load perks for online players (in case of reload)
         Bukkit.getOnlinePlayers().forEach(player -> perkManager.handlePlayerJoin(player));
 
         getLogger().info("Perks plugin enabled successfully!");

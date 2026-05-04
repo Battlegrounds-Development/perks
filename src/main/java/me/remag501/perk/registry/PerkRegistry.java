@@ -1,6 +1,7 @@
 package me.remag501.perk.registry;
 
 import me.remag501.core.api.event.EventService;
+import me.remag501.core.api.oraxen.OraxenService;
 import me.remag501.core.api.task.TaskService;
 import me.remag501.perk.manager.PerkManager;
 import me.remag501.perk.perk.Perk;
@@ -43,17 +44,19 @@ import java.util.Map;
  */
 public class PerkRegistry {
 
-    private final Map<PerkType, Perk> perks;
-    private final Map<PerkType, ItemStack> perkItems;
-
     private final TaskService taskService;
     private final EventService eventService;
     private final ItemService itemService;
+
+    private final Map<PerkType, Perk> perks;
+    private final Map<PerkType, ItemStack> perkItems;
+
 
     public PerkRegistry(EventService eventService, TaskService taskService, ItemService itemService) {
         this.eventService = eventService;
         this.taskService = taskService;
         this.itemService = itemService;
+
         this.perks = new HashMap<>();
         this.perkItems = new HashMap<>();
     }
@@ -83,7 +86,6 @@ public class PerkRegistry {
         registerPerk(PerkType.GHOST_FIST, new GhostFist(eventService, taskService));
         registerPerk(PerkType.TAI_CHI, new TaiChi(eventService));
         registerPerk(PerkType.XP_FARM, new XPFarm(eventService));
-
         // Wolf-related perks that depend on PackMaster
         PackMaster packMaster = (PackMaster) getPerk(PerkType.PACK_MASTER);
         registerPerk(PerkType.FERAL, new Feral(eventService, packMaster));
@@ -93,15 +95,30 @@ public class PerkRegistry {
 
     private void registerPerk(PerkType type, Perk perk) {
         perks.put(type, perk);
+        ItemStack item = createPerkItem(type);
+        perkItems.put(type, item);
+    }
 
-        ItemStack item = itemService.createPerkItem(
+    private ItemStack createPerkItem(PerkType type) {
+        ItemStack item = itemService.createOraxenPerkItem(type);
+        // If item is null, it wasn't defined in Oraxen config, so create a fallback item
+        return (item != null) ? item : itemService.createPerkItem(
                 type.getCustomModelData(),
                 type.getDisplayName(),
                 type.getId(),
                 type.getRarity(),
                 type.getDescription()
         );
-        perkItems.put(type, item);
+    }
+
+    public void reload() {
+        // Clear existing perks and items
+        perkItems.clear();
+        // Recreate perk items (in case of config changes)
+        for (PerkType type : perks.keySet()) {
+            ItemStack item = createPerkItem(type);
+            perkItems.put(type, item);
+        }
     }
 
     public Perk getPerk(PerkType type) {

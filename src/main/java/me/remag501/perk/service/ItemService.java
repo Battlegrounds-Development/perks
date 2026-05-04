@@ -1,6 +1,8 @@
 package me.remag501.perk.service;
 
 import me.remag501.core.api.namespace.NamespaceService;
+import me.remag501.core.api.oraxen.OraxenService;
+import me.remag501.perk.perk.Perk;
 import me.remag501.perk.perk.PerkType;
 import me.remag501.perk.util.ItemUtil;
 import org.bukkit.Bukkit;
@@ -19,9 +21,11 @@ import java.util.*;
 public class ItemService {
 
     private final NamespaceService namespaceService;
+    private final OraxenService oraxenService;
 
-    public ItemService(NamespaceService namespaceService) {
+    public ItemService(NamespaceService namespaceService, OraxenService oraxenService) {
         this.namespaceService = namespaceService;
+        this.oraxenService = oraxenService;
     }
 
 
@@ -103,7 +107,17 @@ public class ItemService {
     }
 
     public ItemStack getPerkCard(PerkType perkType) {
-        ItemStack perkCard = new ItemStack(Material.PAPER);
+        ItemStack perkCard = oraxenService.getItem(perkType.getOraxenId());
+        if (perkCard != null) {
+            // Add namespace
+            ItemMeta meta = perkCard.getItemMeta();
+            PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
+            dataContainer.set(namespaceService.getPerkIdKey(), PersistentDataType.STRING, perkType.getId());
+            perkCard.setItemMeta(meta);
+            return perkCard;
+        }
+
+        perkCard = new ItemStack(Material.PAPER);
         ItemMeta meta = perkCard.getItemMeta();
 
         if (meta != null) {
@@ -122,6 +136,17 @@ public class ItemService {
             perkCard.setItemMeta(meta);
         }
         return perkCard;
+    }
+
+    public ItemStack createOraxenPerkItem(PerkType perkType) {
+        ItemStack oraxenItem = oraxenService.getItem(perkType.getOraxenId());
+        if (oraxenItem == null) return null;
+        // Add namespace
+        ItemMeta meta = oraxenItem.getItemMeta();
+        PersistentDataContainer dataContainer = meta.getPersistentDataContainer();
+        dataContainer.set(namespaceService.getPerkIdKey(), PersistentDataType.STRING, perkType.getId());
+        oraxenItem.setItemMeta(meta);
+        return oraxenItem;
     }
 
     public List<PerkType> itemsToPerks(PlayerInventory inventory) {

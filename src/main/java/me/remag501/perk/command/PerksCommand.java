@@ -4,9 +4,11 @@ import me.remag501.core.api.util.BGSColor;
 import me.remag501.perk.model.PerkProfile;
 import me.remag501.perk.perk.PerkType;
 import me.remag501.perk.manager.PerkManager;
+import me.remag501.perk.registry.PerkRegistry;
 import me.remag501.perk.ui.PerkMenu;
 import me.remag501.perk.service.ItemService;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,12 +21,14 @@ public class PerksCommand implements CommandExecutor {
     private final PerkManager perkManager;
     private final PerkMenu perkMenu;
     private final ItemService itemService;
+    private final PerkRegistry perkRegistry;
 
-    public PerksCommand(Plugin plugin, PerkManager perkManager, PerkMenu perkMenu, ItemService itemService) {
+    public PerksCommand(Plugin plugin, PerkManager perkManager, PerkMenu perkMenu, ItemService itemService, PerkRegistry perkRegistry) {
         this.plugin = plugin;
         this.perkManager = perkManager;
         this.perkMenu = perkMenu;
         this.itemService = itemService;
+        this.perkRegistry = perkRegistry;
     }
 
     @Override
@@ -136,7 +140,7 @@ public class PerksCommand implements CommandExecutor {
 
         // Get the perk card itemstack and give to player
         player.getInventory().addItem(itemService.getPerkCard(perkType));
-        player.sendMessage("§6§lPERKS §8» §7You received a " + perkType.getDisplayName() + " perk card!");
+        player.sendMessage("§6§lPERKS §8» §7You received a " + ChatColor.GOLD + perkType.getDisplayName() + ChatColor.GRAY + " perk card!");
     }
 
     private void addPerkPoints(String playerName, int points) {
@@ -226,8 +230,10 @@ public class PerksCommand implements CommandExecutor {
 //        PerkManager.getInstance().saveAllPerks();
         sender.sendMessage("§6§lPERKS §8» §aAll perk data saved!");
 
+        perkRegistry.reload();
+
         // Note: Full reload would require plugin reload
-        sender.sendMessage(BGSColor.PREFIX_PERKS + "Note: Config reload requires plugin restart");
+//        sender.sendMessage(BGSColor.PREFIX_PERKS + "Note: Config reload requires plugin restart");
     }
 
     private void saveAll(CommandSender sender) {

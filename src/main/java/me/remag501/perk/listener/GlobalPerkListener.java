@@ -8,6 +8,7 @@ import me.remag501.perk.model.PerkProfile;
 import me.remag501.perk.registry.PerkRegistry;
 import me.remag501.perk.registry.WorldRegistry;
 import me.remag501.perk.service.ItemService;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
@@ -88,11 +89,15 @@ public class GlobalPerkListener {
 
         PerkProfile profile = perkManager.getProfile(player.getUniqueId());
         for (PerkType perkType : collectedPerks) {
-            ItemMeta meta = perkRegistry.getPerkItem(perkType).getItemMeta();
-            char colorCode = meta.getLore().get(0).charAt(1);
-            String itemName = "§" + colorCode + "§l" + meta.getDisplayName();
+//            ItemMeta meta = perkRegistry.getPerkItem(perkType).getItemMeta();
+//
+//            char colorCode;
+//            if (meta != null && meta.getLore() != null) colorCode = meta.getLore().getFirst().charAt(1);
+//            else colorCode = 'f'; // default to white if no lore
 
-            player.sendMessage(BGSColor.PREFIX_PERKS + "You have obtained " + itemName);
+//            String itemName = "§" + colorCode + "§l" + perkType.getDisplayName();
+            String itemName = perkType.getDisplayName();
+            player.sendMessage(BGSColor.PREFIX_PERKS + "You have obtained " + ChatColor.GOLD + itemName);
             profile.addOwnedPerk(perkType);
         }
     }
