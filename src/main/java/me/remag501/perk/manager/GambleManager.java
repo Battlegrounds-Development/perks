@@ -59,14 +59,8 @@ public class GambleManager {
     private void triggerTotemAnimation(Player player, PerkType perkType) {
         player.closeInventory();
 
-        ItemStack totem = new ItemStack(Material.TOTEM_OF_UNDYING);
-        ItemMeta meta = totem.getItemMeta();
-        int cmd = perkType.getCustomModelData();
-
-        if (meta != null) {
-            meta.setCustomModelData(cmd);
-            totem.setItemMeta(meta);
-        }
+        ItemStack totem = perkRegistry.getPerkItem(perkType).clone();
+        totem.setType(Material.TOTEM_OF_UNDYING);
 
         ItemStack cache = player.getInventory().getItemInMainHand();
         int slot = player.getInventory().getHeldItemSlot();
